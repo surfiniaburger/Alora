@@ -1,0 +1,119 @@
+.telemetry-panel {
+    background-color: var(--gr-black);
+    border-bottom: 1px solid var(--border-stroke);
+    padding: 15px;
+    color: white;
+    font-family: 'Roboto Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex-shrink: 0; /* Prevent shrinking when console fills up */
+}
+
+.telemetry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--gr-red);
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+.telemetry-header h2 {
+    font-size: 14px;
+    color: var(--gr-red);
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.telemetry-header .live-indicator {
+    font-size: 10px;
+    color: var(--gr-white);
+    background: var(--gr-red);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-weight: bold;
+    animation: blink 2s infinite;
+}
+
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.telemetry-cell {
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.telemetry-cell.large {
+    grid-column: span 2;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--gray-200);
+    letter-spacing: 1px;
+}
+
+.value {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}
+
+.unit {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-left: 4px;
+}
+
+.speed-readout {
+    font-size: 48px;
+    line-height: 1;
+    color: var(--gr-white);
+}
+
+.gear-readout {
+    font-size: 48px;
+    color: var(--gr-red);
+    font-weight: 900;
+}
+
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background: #333;
+    border-radius: 2px;
+    margin-top: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    transition: width 0.5s ease, background-color 0.3s;
+}
+
+.delta-value {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.delta-green { color: #0d9c53; }
+.delta-red { color: #eb0a1e; }
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
