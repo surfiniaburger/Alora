@@ -22,3 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+GSAP_ANIMATION_RECOMMENDATIONS.md
+TEST_RECOMMENDATIONS.md
