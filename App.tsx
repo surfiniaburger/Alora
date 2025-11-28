@@ -33,15 +33,15 @@ import { useMapStore, useTelemetryStore } from './lib/state';
 import { MapController } from './lib/map-controller';
 import { useTelemetrySimulation } from './hooks/use-telemetry';
 
-const API_KEY = import.meta.env.VITE_API_KEY as string;
-if (typeof API_KEY !== 'string') {
+const API_KEY = import.meta.env.VITE_API_KEY;
+if (!API_KEY) {
   throw new Error(
     'Missing required environment variable: VITE_API_KEY'
   );
 }
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
-if (typeof GOOGLE_MAPS_API_KEY !== 'string') {
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+if (!GOOGLE_MAPS_API_KEY) {
   throw new Error(
     'Missing required environment variable: VITE_GOOGLE_MAPS_API_KEY'
   );
