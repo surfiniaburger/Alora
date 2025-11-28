@@ -9,7 +9,7 @@ import { LiveConnectConfig, Modality, LiveServerContent } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-import { useLiveAPIContext } from '../../../contexts/LiveAPIContext';
+import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 import {
   useSettings,
   useLogStore,
@@ -311,7 +311,7 @@ export default function StreamingConsole() {
             const widgetToken =
               t.toolResponse?.candidates?.[0]?.groundingMetadata
                 ?.googleMapsWidgetContextToken;
-            
+
             let sources: { uri: string; title: string }[] = [];
             if (t.groundingChunks) {
               sources =

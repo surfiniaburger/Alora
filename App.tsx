@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, {useCallback, useState, useEffect, useRef} from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 
 import ControlTray from './components/ControlTray';
 import ErrorScreen from './components/ErrorScreen';
@@ -28,22 +28,22 @@ import TelemetryPanel from './components/telemetry/TelemetryPanel';
 import { LiveAPIProvider } from './contexts/LiveAPIContext';
 // FIX: Correctly import APIProvider as a named export.
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
-import { Map3D, Map3DCameraProps} from './components/map-3d';
+import { Map3D, Map3DCameraProps } from './components/map-3d';
 import { useMapStore, useTelemetryStore } from './lib/state';
 import { MapController } from './lib/map-controller';
 import { useTelemetrySimulation } from './hooks/use-telemetry';
 
-const API_KEY = process.env.API_KEY as string;
-if (typeof API_KEY !== 'string') {
+const API_KEY = import.meta.env.VITE_API_KEY;
+if (!API_KEY) {
   throw new Error(
-    'Missing required environment variable: API_KEY'
+    'Missing required environment variable: VITE_API_KEY'
   );
 }
 
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY as string;
-if (typeof GOOGLE_MAPS_API_KEY !== 'string') {
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+if (!GOOGLE_MAPS_API_KEY) {
   throw new Error(
-    'Missing required environment variable: GOOGLE_MAPS_API_KEY'
+    'Missing required environment variable: VITE_GOOGLE_MAPS_API_KEY'
   );
 }
 
@@ -145,18 +145,18 @@ function AppComponent() {
       if (!consoleEl || !trayEl) return;
 
       const isMobile = window.matchMedia('(max-width: 768px)').matches;
-      
+
       const top = 0.05;
       let right = 0.05;
       let bottom = 0.05;
       let left = 0.05;
 
       if (!isMobile) {
-          // On desktop, console is on the RIGHT. 
-          right = Math.max(right, (consoleEl.offsetWidth / vw) + 0.02); // add 2% buffer
-          // Left side is now clear for the map
+        // On desktop, console is on the RIGHT. 
+        right = Math.max(right, (consoleEl.offsetWidth / vw) + 0.02); // add 2% buffer
+        // Left side is now clear for the map
       }
-      
+
       setPadding([top, right, bottom, left]);
     };
 
@@ -172,16 +172,16 @@ function AppComponent() {
     const timeoutId = setTimeout(calculatePadding, 100);
 
     return () => {
-        window.removeEventListener('resize', calculatePadding);
-        observer.disconnect();
-        clearTimeout(timeoutId);
+      window.removeEventListener('resize', calculatePadding);
+      observer.disconnect();
+      clearTimeout(timeoutId);
     };
   }, []);
 
   const handleClosePopUp = () => {
     setShowPopUp(false);
   };
-  
+
   useEffect(() => {
     if (map) {
       const banner = document.querySelector(
@@ -209,7 +209,7 @@ function AppComponent() {
     if (markers.length > 0) {
       controller.addMarkers(markers);
     }
-    
+
     // Combine all points from markers for framing
     const markerPositions = markers.map(m => m.position);
     const allEntities = [...markerPositions].map(p => ({ position: p }));
@@ -237,36 +237,36 @@ function AppComponent() {
 
 
   const handleCameraChange = useCallback((props: Map3DCameraProps) => {
-      setViewProps(oldProps => ({...oldProps, ...props}));
-    }, []);
+    setViewProps(oldProps => ({ ...oldProps, ...props }));
+  }, []);
 
   return (
-    <LiveAPIProvider 
-      apiKey={API_KEY} 
-      map={map} 
+    <LiveAPIProvider
+      apiKey={API_KEY}
+      map={map}
       placesLib={placesLib}
       elevationLib={elevationLib}
       geocoder={geocoder}
       padding={padding}
     >
-        <ErrorScreen />
-        <Sidebar />
-         {showPopUp && <PopUp onClose={handleClosePopUp} />}
-        <div className="streaming-console">
-          {/* Console panel is now styled to be on the right via CSS */}
-          <div className="console-panel" ref={consolePanelRef}>
-            <TelemetryPanel />
-            <StreamingConsole />
-            <ControlTray trayRef={controlTrayRef} />
-          </div>
-          <div className="map-panel">
-              <Map3D
-                ref={element => setMap(element ?? null)}
-                onCameraChange={handleCameraChange}
-                {...viewProps}>
-              </Map3D>
-          </div>
+      <ErrorScreen />
+      <Sidebar />
+      {showPopUp && <PopUp onClose={handleClosePopUp} />}
+      <div className="streaming-console">
+        {/* Console panel is now styled to be on the right via CSS */}
+        <div className="console-panel" ref={consolePanelRef}>
+          <TelemetryPanel />
+          <StreamingConsole />
+          <ControlTray trayRef={controlTrayRef} />
         </div>
+        <div className="map-panel">
+          <Map3D
+            ref={element => setMap(element ?? null)}
+            onCameraChange={handleCameraChange}
+            {...viewProps}>
+          </Map3D>
+        </div>
+      </div>
     </LiveAPIProvider>
   );
 }
@@ -279,12 +279,12 @@ function AppComponent() {
 function App() {
   return (
     <div className="App">
-    <APIProvider
-                version={'alpha'}
-                apiKey={GOOGLE_MAPS_API_KEY}
-                solutionChannel={"gmp_aistudio_itineraryapplet_v1.0.0"}>  
-      <AppComponent />
-    </APIProvider>
+      <APIProvider
+        version={'alpha'}
+        apiKey={GOOGLE_MAPS_API_KEY}
+        solutionChannel={"gmp_aistudio_itineraryapplet_v1.0.0"}>
+        <AppComponent />
+      </APIProvider>
 
     </div>
   );
