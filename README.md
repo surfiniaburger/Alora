@@ -519,3 +519,6 @@ Apache 2.0 - See [LICENSE.md](./LICENSE.md)
 
 **Built with ❤️ by the Alora Team**  
 *Keeping your focus on the road, one intelligent conversation at a time.*
+
+
+gcloud storage ls gs://alora-3d-models/**
