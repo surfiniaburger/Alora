@@ -24,6 +24,7 @@ import { fetchMapsGroundedResponseREST } from '@/lib/maps-grounding';
 import { MapMarker, useLogStore, useMapStore } from '@/lib/state';
 import { useEVModeStore, EVVehicleProfile, EVChargingStation } from '@/lib/ev-mode-state';
 import { ToolImplementation, ToolContext } from './tool-types';
+import { mapsGrounding } from './maps-grounding-tool';
 
 /**
  * TOOL 1: setEVVehicleProfile
@@ -604,5 +605,5 @@ export const evToolRegistry: Record<string, ToolImplementation> = {
     showRouteToStation,
     calculateChargingTime,
     // Reuse the existing mapsGrounding tool for general queries
-    mapsGrounding: require('./maps-grounding-tool').mapsGrounding,
+    mapsGrounding,
 };

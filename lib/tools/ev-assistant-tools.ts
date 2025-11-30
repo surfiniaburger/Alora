@@ -11,7 +11,7 @@
  * discovery and navigation.
  */
 
-import { FunctionCall } from '../state';
+import { FunctionCall } from './tool-types';
 import { FunctionResponseScheduling } from '@google/genai';
 
 export const evAssistantTools: FunctionCall[] = [

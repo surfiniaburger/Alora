@@ -3,7 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GenerateContentResponse, GroundingChunk } from '@google/genai';
+import { GenerateContentResponse, GroundingChunk, FunctionResponseScheduling } from '@google/genai';
+
+export interface FunctionCall {
+    name: string;
+    description?: string;
+    parameters?: any;
+    isEnabled: boolean;
+    scheduling?: FunctionResponseScheduling;
+}
 
 /**
  * Context object containing shared resources and setters that can be passed

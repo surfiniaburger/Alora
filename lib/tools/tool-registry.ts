@@ -30,9 +30,9 @@ import { mapsGrounding, fetchPlaceDetailsFromChunks, updateMapStateWithMarkers }
 import { MapMarker, useLogStore, useMapStore, useTelemetryStore } from '@/lib/state';
 import { lookAtWithPadding } from '../look-at';
 
-import { ToolImplementation, ToolContext } from './tool-types';
-
-export { ToolImplementation, ToolContext };
+import type { ToolImplementation, ToolContext } from './tool-types';
+export type { ToolImplementation, ToolContext };
+import { evToolRegistry } from './ev-tool-registry';
 
 /**
  * Tool implementation for retrieving live race telemetry.
@@ -267,8 +267,6 @@ export function getToolRegistry(template: string): Record<string, ToolImplementa
 
   if (template === 'ev-assistant') {
     console.log('[Tool Registry] Loading EV tools...');
-    // Lazy-load EV tools to avoid circular dependencies
-    const { evToolRegistry } = require('./ev-tool-registry');
     console.log('[Tool Registry] EV tools loaded:', Object.keys(evToolRegistry));
     return evToolRegistry;
   }

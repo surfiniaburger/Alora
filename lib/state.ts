@@ -124,13 +124,7 @@ export const useUI = create<{
 /**
  * Tools
  */
-export interface FunctionCall {
-  name: string;
-  description?: string;
-  parameters?: any;
-  isEnabled: boolean;
-  scheduling?: FunctionResponseScheduling;
-}
+import { FunctionCall } from './tools/tool-types';
 
 
 

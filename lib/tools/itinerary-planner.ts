@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import { FunctionCall } from '../state';
+import { FunctionCall } from './tool-types';
 import { FunctionResponseScheduling } from '@google/genai';
 
 export const itineraryPlannerTools: FunctionCall[] = [
