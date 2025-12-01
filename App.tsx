@@ -186,7 +186,7 @@ function AppComponent() {
 
   // Effect: Update EV station markers when stations are found
   // This connects the EV tool results with the 3D map visualization
-  const { isSidebarOpen, isTelemetryPanelOpen } = useUI();
+  const { isTelemetryPanelOpen } = useUI();
   const { nearbyStations, isEVModeActive, routePath } = useEVModeStore();
   // Request geolocation when in EV mode
   const { location: gpsLocation, error: geoError } = useGeolocation(isEVModeActive);

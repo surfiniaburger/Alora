@@ -496,6 +496,8 @@ gmp-place-details-compact {
   overflow: clip;
   padding: 10px;
   transition: all 0.6s ease-in;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .actions-nav>* {
@@ -512,6 +514,10 @@ gmp-place-details-compact {
   margin: 0 4px;
   border-radius: 4px;
   border: 1px solid var(--Neutral-30);
+  flex-grow: 1;
+  min-width: 100%;
+  /* Force new line if wrapping */
+  margin-top: 4px;
 }
 
 .prompt-input {
@@ -593,8 +599,10 @@ gmp-place-details-compact {
   color: white;
   font-size: 1rem;
   line-height: 1.5;
-  position: absolute;
-  inset: 0;
+  /* position: absolute; REMOVED to fix layout flow */
+  /* inset: 0; REMOVED */
+  flex-grow: 1;
+  /* Allow it to fill remaining space */
   font-family: 'Roboto Mono', monospace;
 }
 

@@ -16,6 +16,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MILES_PER_KWH_ESTIMATE } from '../lib/constants';
 import { evToolRegistry } from '../lib/tools/ev-tool-registry';
 import { useEVModeStore } from '../lib/ev-mode-state';
 import { ToolContext } from '../lib/tools/tool-registry';
@@ -58,6 +59,16 @@ describe('EV Tool Registry', () => {
             placesLib: null,
             elevationLib: null,
             geocoder: null,
+            routesLib: {
+                DirectionsService: class {
+                    route = vi.fn().mockResolvedValue({
+                        routes: [{
+                            overview_path: [],
+                            bounds: {},
+                        }],
+                    });
+                },
+            } as any,
             padding: [0, 0, 0, 0],
             setHeldGroundedResponse: vi.fn(),
             setHeldGroundingChunks: vi.fn(),
@@ -179,6 +190,18 @@ describe('EV Tool Registry', () => {
                 stationPlaceId: 'test-123',
             };
 
+            // Add station to store so it passes the station check
+            useEVModeStore.getState().setNearbyStations([{
+                placeId: 'test-123',
+                name: 'Test Station',
+                position: { lat: 0, lng: 0, altitude: 0 },
+                distance: 10,
+                availablePorts: 2,
+                chargingSpeed: ['Level 2'],
+                amenities: [],
+                operatingHours: '24/7',
+            }]);
+
             const result = await evToolRegistry.showRouteToStation(args, mockContext);
 
             expect(result).toContain('Vehicle profile not set');
@@ -218,10 +241,12 @@ describe('EV Tool Registry', () => {
 
             const result = await evToolRegistry.showRouteToStation(args, mockContext);
 
-            // 15 miles / 3 mi/kWh = 5 kWh
-            // 5 kWh / 75 kWh = 6.67%
+            // 15 miles / MILES_PER_KWH_ESTIMATE = kWh
+            const expectedKWh = 15 / MILES_PER_KWH_ESTIMATE;
+            const expectedPercent = (expectedKWh / 75) * 100;
+
             expect(result).toContain('15.0 miles');
-            expect(result).toContain('6.7%'); // Battery usage
+            expect(result).toContain(`${expectedPercent.toFixed(1)}%`); // Battery usage
         });
 
         it('should warn if station is out of range', async () => {

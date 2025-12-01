@@ -10,7 +10,7 @@
  * Updates the EV mode store when a location is obtained or when an error occurs.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useEVModeStore, UserLocation } from '@/lib/ev-mode-state';
 
 interface GeolocationResult {
@@ -32,7 +32,7 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
     const [loading, setLoading] = useState(false);
     const setUserLocation = useEVModeStore(state => state.setUserLocation);
 
-    const requestLocation = () => {
+    const requestLocation = useCallback(() => {
         // Check if geolocation is supported
         if (!navigator.geolocation) {
             const errorMsg = 'Geolocation is not supported by your browser';
@@ -92,14 +92,14 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
                 maximumAge: 60000, // Cache for 1 minute
             }
         );
-    };
+    }, [setUserLocation]);
 
     // Auto-request location when enabled
     useEffect(() => {
         if (enabled && !location && !error) {
             requestLocation();
         }
-    }, [enabled]);
+    }, [enabled, location, error, requestLocation]);
 
     return {
         location,

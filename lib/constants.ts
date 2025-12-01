@@ -310,4 +310,11 @@ All stations are compatible with your CCS connector. Would you like to see the r
 *   **ALWAYS** provide distance and battery usage context.
 *   **NEVER** recommend a station that's beyond the user's current range without warning them.
 *   **BE PROACTIVE** about range anxiety - don't wait for the user to panic.
+*   **ALWAYS** use the \`MILES_PER_KWH_ESTIMATE\` constant (3.0) for calculations.
 `;
+
+/**
+ * Estimated miles per kWh for EV range calculations.
+ * Used for rough estimates when vehicle-specific efficiency is unknown.
+ */
+export const MILES_PER_KWH_ESTIMATE = 3.0;

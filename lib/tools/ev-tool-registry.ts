@@ -25,6 +25,7 @@ import { MapMarker, useLogStore, useMapStore } from '@/lib/state';
 import { useEVModeStore, EVVehicleProfile, EVChargingStation } from '@/lib/ev-mode-state';
 import { ToolImplementation, ToolContext } from './tool-types';
 import { mapsGrounding } from './maps-grounding-tool';
+import { MILES_PER_KWH_ESTIMATE } from '@/lib/constants';
 
 /**
  * TOOL 1: setEVVehicleProfile
@@ -58,7 +59,7 @@ const setEVVehicleProfile: ToolImplementation = async (args, context) => {
             year: args.year || new Date().getFullYear(),
             batteryCapacity: args.batteryCapacity,
             currentCharge: args.currentCharge,
-            estimatedRange: args.estimatedRange || (args.batteryCapacity * 3), // Rough estimate: 3 mi/kWh
+            estimatedRange: args.estimatedRange || (args.batteryCapacity * MILES_PER_KWH_ESTIMATE), // Rough estimate: 3 mi/kWh
             chargingSpeed: 'DC Fast Charge', // Default to fastest
             connectorTypes: connectorTypes,
         };
@@ -525,7 +526,7 @@ const showRouteToStation: ToolImplementation = async (args, context) => {
     useEVModeStore.getState().selectStation(selectedStation);
 
     // Calculate estimated battery usage
-    const kWhUsed = selectedStation.distance / 3;
+    const kWhUsed = selectedStation.distance / MILES_PER_KWH_ESTIMATE;
     const percentageUsed = (kWhUsed / vehicleProfile.batteryCapacity) * 100;
     const canReach = percentageUsed < vehicleProfile.currentCharge;
 
