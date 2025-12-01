@@ -330,8 +330,8 @@ describe('EV Mode State Management', () => {
                 result.current.clearEVData();
             });
 
-            // Vehicle profile should NOT be cleared (user preference)
-            expect(result.current.vehicleProfile).toEqual(profile);
+            // Vehicle profile SHOULD be cleared
+            expect(result.current.vehicleProfile).toBeNull();
 
             // But stations, selection, and route should be cleared
             expect(result.current.nearbyStations).toEqual([]);

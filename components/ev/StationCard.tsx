@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { EVChargingStation, EVVehicleProfile } from '@/lib/ev-mode-state';
+import { MILES_PER_KWH_ESTIMATE } from '@/lib/constants';
 import './StationCard.css';
 
 interface StationCardProps {
@@ -25,7 +26,7 @@ export default function StationCard({
     // Calculate battery usage
     const getBatteryUsage = (distance: number): number => {
         if (!vehicleProfile) return 0;
-        const kWhUsed = distance / 3; // Rough estimate: 3 mi/kWh
+        const kWhUsed = distance / MILES_PER_KWH_ESTIMATE;
         return (kWhUsed / vehicleProfile.batteryCapacity) * 100;
     };
 

@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { useEVModeStore, EVChargingStation } from '@/lib/ev-mode-state';
+import { useLiveAPIContext } from '@/contexts/LiveAPIContext';
 import StationCard from './StationCard';
 import './StationList.css';
 
@@ -17,9 +18,9 @@ export default function StationList({ stations }: StationListProps) {
         nearbyStations,
         selectedStation,
         selectStation,
-        vehicleProfile,
-        setRouteToStation
+        vehicleProfile
     } = useEVModeStore();
+    const { client, connected } = useLiveAPIContext();
 
     // Use passed stations or fallback to store
     const displayStations = stations || nearbyStations;
@@ -29,10 +30,12 @@ export default function StationList({ stations }: StationListProps) {
     }
 
     const handleNavigate = (station: EVChargingStation) => {
-        // Logic to trigger navigation (e.g., call showRouteToStation tool or update state)
+        // Trigger navigation by sending a text prompt to the AI
         console.log('Navigating to:', station.name);
-        // For now, just select it. In real app, this would trigger the route tool.
         selectStation(station);
+        if (client && connected) {
+            client.sendRealtimeText(`show route to station ${station.placeId}`);
+        }
     };
 
     return (

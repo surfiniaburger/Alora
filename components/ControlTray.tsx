@@ -213,6 +213,22 @@ function ControlTray({ trayRef }: ControlTrayProps) {
             {isTextEntryVisible ? 'keyboard_hide' : 'keyboard'}
           </span>
         </button>
+        <button
+          className={cn('action-button')}
+          onClick={handleSettingsClick}
+          title="Settings"
+          aria-label="Settings"
+        >
+          <span className="icon">tune</span>
+        </button>
+        <button
+          className={cn('action-button')}
+          onClick={toggleTelemetryPanel}
+          title={isTelemetryPanelOpen ? "Hide Dashboard" : "Show Dashboard"}
+          aria-label="Toggle Dashboard"
+        >
+          <span className="icon">dashboard</span>
+        </button>
         {(!isMobile || isTextEntryVisible) && (
           <form className="prompt-form" onSubmit={handleTextSubmit}>
             <input
@@ -236,22 +252,6 @@ function ControlTray({ trayRef }: ControlTrayProps) {
             </button>
           </form>
         )}
-        <button
-          className={cn('action-button')}
-          onClick={handleSettingsClick}
-          title="Settings"
-          aria-label="Settings"
-        >
-          <span className="icon">tune</span>
-        </button>
-        <button
-          className={cn('action-button')}
-          onClick={toggleTelemetryPanel}
-          title={isTelemetryPanelOpen ? "Hide Dashboard" : "Show Dashboard"}
-          aria-label="Toggle Dashboard"
-        >
-          <span className="icon">dashboard</span>
-        </button>
       </nav>
     </section>
   );
