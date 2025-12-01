@@ -98,8 +98,11 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
         navigator.geolocation.getCurrentPosition(
             // Success callback
             (position) => {
-                processPosition(position.coords, 'Web');
-                setLoading(false);
+                try {
+                    processPosition(position.coords, 'Web');
+                } finally {
+                    setLoading(false);
+                }
             },
             // Error callback
             (err) => {
