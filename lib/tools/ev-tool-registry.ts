@@ -134,9 +134,17 @@ const findEVChargingStations: ToolImplementation = async (args, context) => {
         }
 
         // Get current map center as search origin
-        const currentLat = map?.center?.lat || 34.1458; // Fallback to Road Atlanta
-        const currentLng = map?.center?.lng || -83.8177;
-        console.log('[EV Tool] Search origin:', { lat: currentLat, lng: currentLng });
+        // Priority: 1. userLocation (GPS/manual), 2. map center, 3. fallback
+        const userLocation = useEVModeStore.getState().userLocation;
+        const currentLat = userLocation?.lat || map?.center?.lat || 34.1458; // Fallback to Road Atlanta
+        const currentLng = userLocation?.lng || map?.center?.lng || -83.8177;
+
+        console.log('[EV Tool] Search origin:', {
+            lat: currentLat,
+            lng: currentLng,
+            source: userLocation?.source || 'fallback',
+            description: userLocation?.description || 'Road Atlanta (default)'
+        });
 
         // Build intelligent grounding query
         let query = `EV charging stations within ${searchRadius} miles`;
@@ -594,6 +602,79 @@ const calculateChargingTime: ToolImplementation = async (args, context) => {
 };
 
 /**
+ * TOOL 5: setUserLocation
+ * 
+ * Sets the user's location manually when GPS is unavailable or denied.
+ * Geocodes a city/address and stores it for charging station searches.
+ */
+const setUserLocation: ToolImplementation = async (args, context) => {
+    console.log('[EV Tool] setUserLocation called with args:', JSON.stringify(args, null, 2));
+
+    const { city, state, country } = args;
+    const { geocoder } = context;
+
+    if (!geocoder) {
+        const errorMsg = 'Geocoding service is not available.';
+        console.log('[EV Tool] No geocoder available');
+        return errorMsg;
+    }
+
+    // Build address string
+    let address = city;
+    if (state) address += `, ${state}`;
+    if (country) address += `, ${country}`;
+
+    console.log('[EV Tool] Geocoding address:', address);
+
+    try {
+        const response = await geocoder.geocode({ address });
+
+        if (!response.results || response.results.length === 0) {
+            const errorMsg = `Could not find location "${address}". Please try again with a different city or include the state/country.`;
+            console.log('[EV Tool] Geocoding failed - no results');
+            return errorMsg;
+        }
+
+        const location = response.results[0].geometry.location;
+        const formattedAddress = response.results[0].formatted_address;
+
+        const userLoc: import('@/lib/ev-mode-state').UserLocation = {
+            lat: location.lat(),
+            lng: location.lng(),
+            source: 'manual',
+            timestamp: Date.now(),
+            description: formattedAddress,
+        };
+
+        console.log('[EV Tool] Geocoded location:', userLoc);
+        useEVModeStore.getState().setUserLocation(userLoc);
+
+        // Also update map to show the location
+        useMapStore.getState().setCameraTarget({
+            center: { lat: userLoc.lat, lng: userLoc.lng, altitude: 5000 },
+            range: 50000,
+            tilt: 0,
+            heading: 0,
+            roll: 0,
+        });
+
+        const successMsg = `Location set to ${formattedAddress}. I'll use this location for charging station searches.`;
+        console.log('[EV Tool] Location set successfully');
+
+        useLogStore.getState().addTurn({
+            role: 'system',
+            text: successMsg,
+            isFinal: true,
+        });
+
+        return successMsg;
+    } catch (error) {
+        console.error('[EV Tool] ERROR in setUserLocation:', error);
+        return `Error setting location: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    }
+};
+
+/**
  * EV Tool Registry
  * 
  * Maps tool names to their implementation functions.
@@ -604,6 +685,7 @@ export const evToolRegistry: Record<string, ToolImplementation> = {
     findEVChargingStations,
     showRouteToStation,
     calculateChargingTime,
+    setUserLocation,
     // Reuse the existing mapsGrounding tool for general queries
     mapsGrounding,
 };

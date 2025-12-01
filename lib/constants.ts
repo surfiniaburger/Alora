@@ -27,57 +27,57 @@ export const DEFAULT_LIVE_API_MODEL = 'gemini-live-2.5-flash-preview';
 export const DEFAULT_VOICE = 'Fenrir'; // Deeper, more serious voice for engineer
 
 export interface VoiceOption {
-  name: string;
-  description: string;
+    name: string;
+    description: string;
 }
 
 export const AVAILABLE_VOICES_FULL: VoiceOption[] = [
-  { name: 'Achernar', description: 'Soft, Higher pitch' },
-  { name: 'Achird', description: 'Friendly, Lower middle pitch' },
-  { name: 'Algenib', description: 'Gravelly, Lower pitch' },
-  { name: 'Algieba', description: 'Smooth, Lower pitch' },
-  { name: 'Alnilam', description: 'Firm, Lower middle pitch' },
-  { name: 'Aoede', description: 'Breezy, Middle pitch' },
-  { name: 'Autonoe', description: 'Bright, Middle pitch' },
-  { name: 'Callirrhoe', description: 'Easy-going, Middle pitch' },
-  { name: 'Charon', description: 'Informative, Lower pitch' },
-  { name: 'Despina', description: 'Smooth, Middle pitch' },
-  { name: 'Enceladus', description: 'Breathy, Lower pitch' },
-  { name: 'Erinome', description: 'Clear, Middle pitch' },
-  { name: 'Fenrir', description: 'Excitable, Lower middle pitch' },
-  { name: 'Gacrux', description: 'Mature, Middle pitch' },
-  { name: 'Iapetus', description: 'Clear, Lower middle pitch' },
-  { name: 'Kore', description: 'Firm, Middle pitch' },
-  { name: 'Laomedeia', description: 'Upbeat, Higher pitch' },
-  { name: 'Leda', description: 'Youthful, Higher pitch' },
-  { name: 'Orus', description: 'Firm, Lower middle pitch' },
-  { name: 'Puck', description: 'Upbeat, Middle pitch' },
-  { name: 'Pulcherrima', description: 'Forward, Middle pitch' },
-  { name: 'Rasalgethi', description: 'Informative, Middle pitch' },
-  { name: 'Sadachbia', description: 'Lively, Lower pitch' },
-  { name: 'Sadaltager', description: 'Knowledgeable, Middle pitch' },
-  { name: 'Schedar', description: 'Even, Lower middle pitch' },
-  { name: 'Sulafat', description: 'Warm, Middle pitch' },
-  { name: 'Umbriel', description: 'Easy-going, Lower middle pitch' },
-  { name: 'Vindemiatrix', description: 'Gentle, Middle pitch' },
-  { name: 'Zephyr', description: 'Bright, Higher pitch' },
-  { name: 'Zubenelgenubi', description: 'Casual, Lower middle pitch' },
+    { name: 'Achernar', description: 'Soft, Higher pitch' },
+    { name: 'Achird', description: 'Friendly, Lower middle pitch' },
+    { name: 'Algenib', description: 'Gravelly, Lower pitch' },
+    { name: 'Algieba', description: 'Smooth, Lower pitch' },
+    { name: 'Alnilam', description: 'Firm, Lower middle pitch' },
+    { name: 'Aoede', description: 'Breezy, Middle pitch' },
+    { name: 'Autonoe', description: 'Bright, Middle pitch' },
+    { name: 'Callirrhoe', description: 'Easy-going, Middle pitch' },
+    { name: 'Charon', description: 'Informative, Lower pitch' },
+    { name: 'Despina', description: 'Smooth, Middle pitch' },
+    { name: 'Enceladus', description: 'Breathy, Lower pitch' },
+    { name: 'Erinome', description: 'Clear, Middle pitch' },
+    { name: 'Fenrir', description: 'Excitable, Lower middle pitch' },
+    { name: 'Gacrux', description: 'Mature, Middle pitch' },
+    { name: 'Iapetus', description: 'Clear, Lower middle pitch' },
+    { name: 'Kore', description: 'Firm, Middle pitch' },
+    { name: 'Laomedeia', description: 'Upbeat, Higher pitch' },
+    { name: 'Leda', description: 'Youthful, Higher pitch' },
+    { name: 'Orus', description: 'Firm, Lower middle pitch' },
+    { name: 'Puck', description: 'Upbeat, Middle pitch' },
+    { name: 'Pulcherrima', description: 'Forward, Middle pitch' },
+    { name: 'Rasalgethi', description: 'Informative, Middle pitch' },
+    { name: 'Sadachbia', description: 'Lively, Lower pitch' },
+    { name: 'Sadaltager', description: 'Knowledgeable, Middle pitch' },
+    { name: 'Schedar', description: 'Even, Lower middle pitch' },
+    { name: 'Sulafat', description: 'Warm, Middle pitch' },
+    { name: 'Umbriel', description: 'Easy-going, Lower middle pitch' },
+    { name: 'Vindemiatrix', description: 'Gentle, Middle pitch' },
+    { name: 'Zephyr', description: 'Bright, Higher pitch' },
+    { name: 'Zubenelgenubi', description: 'Casual, Lower middle pitch' },
 ];
 
 export const AVAILABLE_VOICES_LIMITED: VoiceOption[] = [
-  { name: 'Puck', description: 'Upbeat, Middle pitch' },
-  { name: 'Charon', description: 'Informative, Lower pitch' },
-  { name: 'Kore', description: 'Firm, Middle pitch' },
-  { name: 'Fenrir', description: 'Excitable, Lower middle pitch' },
-  { name: 'Aoede', description: 'Breezy, Middle pitch' },
-  { name: 'Leda', description: 'Youthful, Higher pitch' },
-  { name: 'Orus', description: 'Firm, Lower middle pitch' },
-  { name: 'Zephyr', description: 'Bright, Higher pitch' },
+    { name: 'Puck', description: 'Upbeat, Middle pitch' },
+    { name: 'Charon', description: 'Informative, Lower pitch' },
+    { name: 'Kore', description: 'Firm, Middle pitch' },
+    { name: 'Fenrir', description: 'Excitable, Lower middle pitch' },
+    { name: 'Aoede', description: 'Breezy, Middle pitch' },
+    { name: 'Leda', description: 'Youthful, Higher pitch' },
+    { name: 'Orus', description: 'Firm, Lower middle pitch' },
+    { name: 'Zephyr', description: 'Bright, Higher pitch' },
 ];
 
 export const MODELS_WITH_LIMITED_VOICES = [
-  'gemini-live-2.5-flash-preview',
-  'gemini-2.0-flash-live-001'
+    'gemini-live-2.5-flash-preview',
+    'gemini-2.0-flash-live-001'
 ];
 
 export const RACE_ENGINEER_PROMPT = `
@@ -234,9 +234,30 @@ You are an **intelligent EV Charging Assistant** integrated into the Alora autom
 *   Call this when the user asks "How long will it take to charge?"
 *   Provide realistic estimates based on station type and battery capacity
 
-**5. mapsGrounding (Fallback):**
+**5. setUserLocation:**
+*   Use this when GPS location is unavailable or user mentions their location
+*   Ask: "I need to know where you are to find nearby charging stations. What city and state are you in?"
+*   Call with the city name and optionally state/country
+*   Always confirm: "I've set your location to [City, State]. I'll use this for charging station searches."
+
+**6. mapsGrounding (Fallback):**
 *   Use this for general location queries not specific to EV charging
 *   Example: "Where is the nearest coffee shop?" or "Show me downtown"
+
+### **Location Handling**
+
+**Priority for finding user's location:**
+1.  **GPS (Automatic):** If the browser provides location, use it automatically - no need to ask the user
+2.  **Manual (Fallback):** If GPS fails or is denied:
+    *   Ask: "I need to know your location to find nearby charging stations. What city are you in?"
+    *   Use \`setUserLocation\` tool to store the manually provided location
+    *   Always confirm the geocoded address with the user
+3.  **Implicit Location:** If user mentions a city in conversation ("I'm in San Francisco"), immediately call \`setUserLocation\`
+
+**When searching for stations:**
+*   Always use the stored user location first
+*   Only fall back to map center if no location is set
+*   Mention the search location: "Searching for stations near [Location]..."
 
 ### **Conversational Flow**
 

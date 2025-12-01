@@ -36,6 +36,7 @@ import { useMapStore, useTelemetryStore } from './lib/state';
 import { useEVModeStore } from './lib/ev-mode-state';
 import { MapController } from './lib/map-controller';
 import { useTelemetrySimulation } from './hooks/use-telemetry';
+import { useGeolocation } from './hooks/use-geolocation';
 
 const API_KEY = import.meta.env.VITE_API_KEY;
 if (!API_KEY) {
@@ -185,6 +186,9 @@ function AppComponent() {
   // Effect: Update EV station markers when stations are found
   // This connects the EV tool results with the 3D map visualization
   const { nearbyStations, isEVModeActive } = useEVModeStore();
+
+  // Request geolocation when in EV mode
+  const { location: gpsLocation, error: geoError } = useGeolocation(isEVModeActive);
   useEffect(() => {
     if (mapController.current) {
       if (!isEVModeActive) {
@@ -194,6 +198,32 @@ function AppComponent() {
       }
     }
   }, [nearbyStations, isEVModeActive]);
+
+  // Effect: Zoom map to user's GPS location when obtained in EV mode
+  useEffect(() => {
+    if (gpsLocation && isEVModeActive && mapController.current) {
+      console.log('[Geolocation] GPS location obtained, zooming to user location');
+      mapController.current.flyTo({
+        center: {
+          lat: gpsLocation.lat,
+          lng: gpsLocation.lng,
+          altitude: 5000,
+        },
+        range: 50000,
+        tilt: 0,
+        heading: 0,
+        roll: 0,
+      });
+    }
+  }, [gpsLocation, isEVModeActive]);
+
+  // Effect: Log geolocation errors
+  useEffect(() => {
+    if (geoError) {
+      console.log('[Geolocation] Error:', geoError);
+      // The AI will naturally ask for location via setUserLocation tool as fallback
+    }
+  }, [geoError]);
 
   useEffect(() => {
     console.log('[EV Tool] App mounted - DebugPanel test log');

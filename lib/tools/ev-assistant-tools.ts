@@ -180,6 +180,40 @@ export const evAssistantTools: FunctionCall[] = [
         scheduling: FunctionResponseScheduling.INTERRUPT,
     },
     {
+        name: 'setUserLocation',
+        description: `Sets the user's location manually for charging station searches when GPS is unavailable or denied.
+    
+    **When to call:**
+    - User's browser location permission is denied
+    - GPS location is unavailable
+    - User explicitly mentions their location (e.g., "I'm in San Francisco")
+    
+    **How to use:**
+    - Ask the user: "What city are you in?" or "Where are you located?"
+    - Call this tool with the city name and optionally state/country
+    - Always confirm the location with the user after setting it`,
+        parameters: {
+            type: 'OBJECT',
+            properties: {
+                city: {
+                    type: 'STRING',
+                    description: 'City name (e.g., "San Francisco", "New York", "Austin")',
+                },
+                state: {
+                    type: 'STRING',
+                    description: 'State or province (e.g., "CA", "NY", "TX")',
+                },
+                country: {
+                    type: 'STRING',
+                    description: 'Country name (e.g., "USA", "Canada")',
+                },
+            },
+            required: ['city'],
+        },
+        isEnabled: true,
+        scheduling: FunctionResponseScheduling.INTERRUPT,
+    },
+    {
         name: 'mapsGrounding',
         description: `Fallback tool for general location queries not specific to EV charging.
     

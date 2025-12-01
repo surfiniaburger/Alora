@@ -48,6 +48,18 @@ export interface EVChargingStation {
 }
 
 /**
+ * User's location for charging station searches.
+ * Sources: 'gps' (browser geolocation), 'manual' (user-provided city), 'fallback' (race track default)
+ */
+export interface UserLocation {
+    lat: number;
+    lng: number;
+    source: 'gps' | 'manual' | 'fallback';
+    timestamp: number;
+    description?: string; // e.g., "San Francisco, CA" or "Current GPS location"
+}
+
+/**
  * EV Mode State Store
  * 
  * Manages:
@@ -64,6 +76,7 @@ export const useEVModeStore = create<{
     nearbyStations: EVChargingStation[];
     selectedStation: EVChargingStation | null;
     routeToStation: google.maps.LatLngAltitudeLiteral[] | null;
+    userLocation: UserLocation | null;
 
     // Actions
     toggleEVMode: () => void;
@@ -71,6 +84,7 @@ export const useEVModeStore = create<{
     setNearbyStations: (stations: EVChargingStation[]) => void;
     selectStation: (station: EVChargingStation | null) => void;
     setRouteToStation: (route: google.maps.LatLngAltitudeLiteral[] | null) => void;
+    setUserLocation: (location: UserLocation | null) => void;
     clearEVData: () => void;
 }>((set) => ({
     // Initial State
@@ -79,6 +93,7 @@ export const useEVModeStore = create<{
     nearbyStations: [],
     selectedStation: null,
     routeToStation: null,
+    userLocation: null,
 
     // Toggle EV Mode on/off
     toggleEVMode: () => set((state) => ({
@@ -96,6 +111,12 @@ export const useEVModeStore = create<{
 
     // Store the calculated route to a station
     setRouteToStation: (route) => set({ routeToStation: route }),
+
+    // Store user's location for charging station searches
+    setUserLocation: (location) => {
+        console.log('[EV Store] Setting user location:', location);
+        set({ userLocation: location });
+    },
 
     // Clear all EV-related data (useful when switching back to race mode)
     clearEVData: () => set({
