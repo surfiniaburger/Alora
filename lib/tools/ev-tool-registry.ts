@@ -494,11 +494,19 @@ function extractOperatingHours(place: any): string {
  */
 const showRouteToStation: ToolImplementation = async (args, context) => {
     const { stationPlaceId } = args;
-    const { map } = context;
+    const { map, routesLib } = context;
+
+    console.log('[EV Tool] showRouteToStation called for:', stationPlaceId);
+    console.log('[EV Tool] Routes Lib available:', !!routesLib);
+
+    // Normalize Place ID (strip 'places/' prefix if present)
+    const normalizedPlaceId = stationPlaceId.replace('places/', '');
+    console.log('[EV Tool] Normalized Place ID:', normalizedPlaceId);
 
     const stations = useEVModeStore.getState().nearbyStations;
     const vehicleProfile = useEVModeStore.getState().vehicleProfile;
-    const selectedStation = stations.find(s => s.placeId === stationPlaceId);
+    const userLocation = useEVModeStore.getState().userLocation;
+    const selectedStation = stations.find(s => s.placeId === normalizedPlaceId);
 
     if (!selectedStation) {
         return 'Station not found. Please search for stations first using findEVChargingStations.';
@@ -508,25 +516,73 @@ const showRouteToStation: ToolImplementation = async (args, context) => {
         return 'Vehicle profile not set. Please set up your vehicle profile first.';
     }
 
+    if (!routesLib) {
+        console.error('[EV Tool] Routes library not available');
+        return 'Navigation service unavailable. Please try again later.';
+    }
+
     // Select the station
     useEVModeStore.getState().selectStation(selectedStation);
 
     // Calculate estimated battery usage
-    // Rough estimate: 3 miles per kWh, so distance / 3 = kWh used
     const kWhUsed = selectedStation.distance / 3;
     const percentageUsed = (kWhUsed / vehicleProfile.batteryCapacity) * 100;
-
-    // Check if station is reachable
     const canReach = percentageUsed < vehicleProfile.currentCharge;
 
-    // Set camera target to zoom to the station
-    useMapStore.getState().setCameraTarget({
-        center: selectedStation.position,
-        range: 500,
-        tilt: 60,
-        heading: 0,
-        roll: 0,
-    });
+    // Determine origin
+    let origin: google.maps.LatLngLiteral;
+    if (userLocation) {
+        origin = { lat: userLocation.lat, lng: userLocation.lng };
+    } else if (map) {
+        const center = map.center;
+        origin = { lat: center.lat, lng: center.lng };
+    } else {
+        return 'Could not determine your location for routing.';
+    }
+
+    // Fetch Route
+    try {
+        const directionsService = new routesLib.DirectionsService();
+        const result = await directionsService.route({
+            origin: origin,
+            destination: {
+                lat: selectedStation.position.lat,
+                lng: selectedStation.position.lng
+            },
+            travelMode: google.maps.TravelMode.DRIVING,
+        });
+
+        if (result.routes && result.routes.length > 0) {
+            const route = result.routes[0];
+
+            // Extract path for 3D map
+            const path: google.maps.LatLngAltitudeLiteral[] = route.overview_path.map(p => ({
+                lat: p.lat(),
+                lng: p.lng(),
+                altitude: 5 // Lift slightly off ground
+            }));
+
+            // Update store with route path
+            useEVModeStore.getState().setRoutePath(path);
+            console.log('[EV Tool] Route calculated and stored:', path.length, 'points');
+
+            // Zoom to route bounds
+            if (route.bounds && map) {
+                // We can't use fitBounds directly on Map3D, so we approximate with camera target
+                // For now, just zoom to the station as before, but maybe further out
+                useMapStore.getState().setCameraTarget({
+                    center: selectedStation.position,
+                    range: 2000, // Further out to see more context
+                    tilt: 45,
+                    heading: 0,
+                    roll: 0,
+                });
+            }
+        }
+    } catch (error) {
+        console.error('[EV Tool] Error fetching route:', error);
+        // Fallback to just zooming if routing fails
+    }
 
     // Log to conversation
     const message = canReach
@@ -551,9 +607,12 @@ const showRouteToStation: ToolImplementation = async (args, context) => {
 const calculateChargingTime: ToolImplementation = async (args, context) => {
     const { stationPlaceId, targetCharge } = args;
 
+    // Normalize Place ID
+    const normalizedPlaceId = stationPlaceId.replace('places/', '');
+
     const vehicleProfile = useEVModeStore.getState().vehicleProfile;
     const stations = useEVModeStore.getState().nearbyStations;
-    const station = stations.find(s => s.placeId === stationPlaceId);
+    const station = stations.find(s => s.placeId === normalizedPlaceId);
 
     if (!vehicleProfile) {
         return 'Vehicle profile not set. Please set up your vehicle profile first.';

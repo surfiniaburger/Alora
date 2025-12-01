@@ -60,16 +60,9 @@ export interface UserLocation {
 }
 
 /**
- * EV Mode State Store
- * 
- * Manages:
- * - Mode activation state
- * - User's vehicle profile
- * - Nearby charging stations
- * - Selected station for navigation
- * - Route visualization data
+ * EV Mode State Store Interface
  */
-export const useEVModeStore = create<{
+interface EVModeState {
     // State
     isEVModeActive: boolean;
     vehicleProfile: EVVehicleProfile | null;
@@ -77,6 +70,7 @@ export const useEVModeStore = create<{
     selectedStation: EVChargingStation | null;
     routeToStation: google.maps.LatLngAltitudeLiteral[] | null;
     userLocation: UserLocation | null;
+    routePath: google.maps.LatLngAltitudeLiteral[] | null;
 
     // Actions
     toggleEVMode: () => void;
@@ -85,8 +79,15 @@ export const useEVModeStore = create<{
     selectStation: (station: EVChargingStation | null) => void;
     setRouteToStation: (route: google.maps.LatLngAltitudeLiteral[] | null) => void;
     setUserLocation: (location: UserLocation | null) => void;
+    setRoutePath: (path: google.maps.LatLngAltitudeLiteral[] | null) => void;
+    clearRoutePath: () => void;
     clearEVData: () => void;
-}>((set) => ({
+}
+
+/**
+ * EV Mode State Store Implementation
+ */
+export const useEVModeStore = create<EVModeState>((set) => ({
     // Initial State
     isEVModeActive: false,
     vehicleProfile: null,
@@ -94,34 +95,32 @@ export const useEVModeStore = create<{
     selectedStation: null,
     routeToStation: null,
     userLocation: null,
+    routePath: null,
 
     // Toggle EV Mode on/off
     toggleEVMode: () => set((state) => ({
         isEVModeActive: !state.isEVModeActive
     })),
 
-    // Store user's vehicle profile
+    // Setters
     setVehicleProfile: (profile) => set({ vehicleProfile: profile }),
-
-    // Update the list of nearby charging stations
     setNearbyStations: (stations) => set({ nearbyStations: stations }),
-
-    // Select a specific station for detailed view/navigation
     selectStation: (station) => set({ selectedStation: station }),
-
-    // Store the calculated route to a station
     setRouteToStation: (route) => set({ routeToStation: route }),
-
-    // Store user's location for charging station searches
     setUserLocation: (location) => {
         console.log('[EV Store] Setting user location:', location);
         set({ userLocation: location });
     },
+    setRoutePath: (path) => set({ routePath: path }),
+    clearRoutePath: () => set({ routePath: null }),
 
-    // Clear all EV-related data (useful when switching back to race mode)
+    // Clear all data
     clearEVData: () => set({
+        vehicleProfile: null,
         nearbyStations: [],
         selectedStation: null,
         routeToStation: null,
+        userLocation: null,
+        routePath: null,
     }),
 }));

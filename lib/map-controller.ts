@@ -40,6 +40,7 @@ export class MapController {
 
   // Race Layer Elements
   private trackPolyline: google.maps.maps3d.Polyline3DElement | null = null;
+  private routePolyline: google.maps.maps3d.Polyline3DElement | null = null;
   private carMarker: google.maps.maps3d.Marker3DInteractiveElement | null = null;
   private ghostMarker: google.maps.maps3d.Marker3DInteractiveElement | null = null;
 
@@ -95,6 +96,34 @@ export class MapController {
       altitudeMode: 'RELATIVE_TO_MESH'
     });
     this.map.appendChild(this.trackPolyline);
+  }
+
+  /**
+   * Draws a navigation route on the map.
+   */
+  drawRoute(path: google.maps.LatLngAltitudeLiteral[]) {
+    if (this.routePolyline) {
+      this.routePolyline.coordinates = path;
+      return;
+    }
+
+    this.routePolyline = new this.maps3dLib.Polyline3DElement({
+      coordinates: path,
+      strokeColor: 'rgba(0, 208, 132, 0.8)', // EV Green
+      strokeWidth: 6,
+      altitudeMode: 'RELATIVE_TO_MESH'
+    });
+    this.map.appendChild(this.routePolyline);
+  }
+
+  /**
+   * Clears the navigation route from the map.
+   */
+  clearRoute() {
+    if (this.routePolyline) {
+      this.map.removeChild(this.routePolyline);
+      this.routePolyline = null;
+    }
   }
 
   /**

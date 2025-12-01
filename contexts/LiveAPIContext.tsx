@@ -29,6 +29,7 @@ export type LiveAPIProviderProps = {
   apiKey: string;
   map: google.maps.maps3d.Map3DElement | null;
   placesLib: google.maps.PlacesLibrary | null;
+  routesLib: google.maps.RoutesLibrary | null;
   elevationLib: google.maps.ElevationLibrary | null;
   geocoder: google.maps.Geocoder | null;
   padding: [number, number, number, number];
@@ -39,11 +40,12 @@ export const LiveAPIProvider: FC<LiveAPIProviderProps> = ({
   children,
   map,
   placesLib,
+  routesLib,
   elevationLib,
   geocoder,
   padding,
 }) => {
-  const liveAPI = useLiveApi({ apiKey, map, placesLib, elevationLib, geocoder, padding });
+  const liveAPI = useLiveApi({ apiKey, map, placesLib, routesLib, elevationLib, geocoder, padding });
 
   return (
     <LiveAPIContext.Provider value={liveAPI}>

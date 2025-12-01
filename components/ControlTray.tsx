@@ -50,13 +50,13 @@ export type ControlTrayProps = {
   trayRef?: Ref<HTMLElement>;
 };
 
-function ControlTray({trayRef}: ControlTrayProps) {
+function ControlTray({ trayRef }: ControlTrayProps) {
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const [audioRecorder] = useState(() => new AudioRecorder());
   const [muted, setMuted] = useState(true);
   const [textPrompt, setTextPrompt] = useState('');
   const connectButtonRef = useRef<HTMLButtonElement>(null);
-  const { toggleSidebar } = useUI();
+  const { toggleSidebar, toggleTelemetryPanel, isTelemetryPanelOpen } = useUI();
   const { activateEasterEggMode } = useSettings();
   const settingsClickTimestamps = useRef<number[]>([]);
   const isMobile = useMediaQuery('(max-width: 768px), (orientation: landscape) and (max-height: 768px)');
@@ -88,7 +88,7 @@ function ControlTray({trayRef}: ControlTrayProps) {
         },
       ]);
     };
-    
+
     if (connected && !muted && audioRecorder) {
       audioRecorder.on('data', onData);
       audioRecorder.start();
@@ -114,7 +114,7 @@ function ControlTray({trayRef}: ControlTrayProps) {
       isFinal: true,
     });
     const currentPrompt = textPrompt;
-    
+
     // Inject current telemetry for text requests
     const telemetry = useTelemetryStore.getState().data;
     const promptWithContext = `${currentPrompt} \n [SYSTEM CONTEXT: Race Data: ${JSON.stringify(telemetry)}]`;
@@ -141,19 +141,19 @@ function ControlTray({trayRef}: ControlTrayProps) {
 
     // Filter out clicks older than 3 seconds
     settingsClickTimestamps.current = settingsClickTimestamps.current.filter(
-        timestamp => now - timestamp < 3000
+      timestamp => now - timestamp < 3000
     );
 
     if (settingsClickTimestamps.current.length >= 6) {
-        activateEasterEggMode();
-        useLogStore.getState().addTurn({
-            role: 'system',
-            text: "You've unlocked Scavenger Hunt mode!.",
-            isFinal: true,
-        });
-        
-        // Reset after triggering
-        settingsClickTimestamps.current = [];
+      activateEasterEggMode();
+      useLogStore.getState().addTurn({
+        role: 'system',
+        text: "You've unlocked Scavenger Hunt mode!.",
+        isFinal: true,
+      });
+
+      // Reset after triggering
+      settingsClickTimestamps.current = [];
     }
   };
 
@@ -243,6 +243,14 @@ function ControlTray({trayRef}: ControlTrayProps) {
           aria-label="Settings"
         >
           <span className="icon">tune</span>
+        </button>
+        <button
+          className={cn('action-button')}
+          onClick={toggleTelemetryPanel}
+          title={isTelemetryPanelOpen ? "Hide Dashboard" : "Show Dashboard"}
+          aria-label="Toggle Dashboard"
+        >
+          <span className="icon">dashboard</span>
         </button>
       </nav>
     </section>

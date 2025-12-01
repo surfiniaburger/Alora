@@ -20,6 +20,7 @@ export interface FunctionCall {
 export interface ToolContext {
     map: google.maps.maps3d.Map3DElement | null;
     placesLib: google.maps.PlacesLibrary | null;
+    routesLib: google.maps.RoutesLibrary | null;
     elevationLib: google.maps.ElevationLibrary | null;
     geocoder: google.maps.Geocoder | null;
     padding: [number, number, number, number];

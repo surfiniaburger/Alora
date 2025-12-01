@@ -1,0 +1,36 @@
+/**
+ * Battery Status Styles
+ */
+
+.battery-status-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 208, 132, 0.1);
+    border: 1px solid rgba(0, 208, 132, 0.3);
+    border-radius: 8px;
+    color: white;
+    width: fit-content;
+}
+
+.battery-icon {
+    font-size: 1.25rem;
+}
+
+.battery-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.battery-level {
+    font-weight: 700;
+    color: #00d084;
+    font-size: 0.9375rem;
+}
+
+.battery-range {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+}

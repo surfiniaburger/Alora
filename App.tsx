@@ -32,7 +32,7 @@ import { LiveAPIProvider } from './contexts/LiveAPIContext';
 // FIX: Correctly import APIProvider as a named export.
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Map3D, Map3DCameraProps } from './components/map-3d';
-import { useMapStore, useTelemetryStore } from './lib/state';
+import { useMapStore, useTelemetryStore, useUI } from './lib/state';
 import { useEVModeStore } from './lib/ev-mode-state';
 import { MapController } from './lib/map-controller';
 import { useTelemetrySimulation } from './hooks/use-telemetry';
@@ -85,6 +85,7 @@ function AppComponent() {
 
   const maps3dLib = useMapsLibrary('maps3d');
   const elevationLib = useMapsLibrary('elevation');
+  const routesLib = useMapsLibrary('routes');
 
   const [showPopUp, setShowPopUp] = useState(true);
 
@@ -185,19 +186,27 @@ function AppComponent() {
 
   // Effect: Update EV station markers when stations are found
   // This connects the EV tool results with the 3D map visualization
-  const { nearbyStations, isEVModeActive } = useEVModeStore();
-
+  const { isSidebarOpen, isTelemetryPanelOpen } = useUI();
+  const { nearbyStations, isEVModeActive, routePath } = useEVModeStore();
   // Request geolocation when in EV mode
   const { location: gpsLocation, error: geoError } = useGeolocation(isEVModeActive);
   useEffect(() => {
     if (mapController.current) {
       if (!isEVModeActive) {
         mapController.current.clearEVMarkers();
-      } else if (nearbyStations.length > 0) {
-        mapController.current.addEVStationMarkers(nearbyStations);
+        mapController.current.clearRoute();
+      } else {
+        if (nearbyStations.length > 0) {
+          mapController.current.addEVStationMarkers(nearbyStations);
+        }
+        if (routePath) {
+          mapController.current.drawRoute(routePath);
+        } else {
+          mapController.current.clearRoute();
+        }
       }
     }
-  }, [nearbyStations, isEVModeActive]);
+  }, [nearbyStations, isEVModeActive, routePath]);
 
   // Effect: Zoom map to user's GPS location when obtained in EV mode
   useEffect(() => {
@@ -297,6 +306,7 @@ function AppComponent() {
       apiKey={API_KEY}
       map={map}
       placesLib={placesLib}
+      routesLib={routesLib}
       elevationLib={elevationLib}
       geocoder={geocoder}
       padding={padding}
@@ -309,8 +319,8 @@ function AppComponent() {
       <div className="streaming-console">
         {/* Console panel is now styled to be on the right via CSS */}
         <div className="console-panel" ref={consolePanelRef}>
-          <TelemetryPanel />
-          <EVStationPanel />
+          {isTelemetryPanelOpen && <TelemetryPanel />}
+          {/* EV Station Panel removed in favor of chat integration */}
           <StreamingConsole />
           <ControlTray trayRef={controlTrayRef} />
         </div>

@@ -113,12 +113,16 @@ export const useUI = create<{
   toggleSidebar: () => void;
   showSystemMessages: boolean;
   toggleShowSystemMessages: () => void;
+  isTelemetryPanelOpen: boolean;
+  toggleTelemetryPanel: () => void;
 }>(set => ({
   isSidebarOpen: false,
   toggleSidebar: () => set(state => ({ isSidebarOpen: !state.isSidebarOpen })),
   showSystemMessages: false,
   toggleShowSystemMessages: () =>
     set(state => ({ showSystemMessages: !state.showSystemMessages })),
+  isTelemetryPanelOpen: true,
+  toggleTelemetryPanel: () => set(state => ({ isTelemetryPanelOpen: !state.isTelemetryPanelOpen })),
 }));
 
 /**
