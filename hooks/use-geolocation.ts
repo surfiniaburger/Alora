@@ -35,6 +35,24 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
     const [loading, setLoading] = useState(false);
     const setUserLocation = useEVModeStore(state => state.setUserLocation);
 
+    /**
+     * Helper function to process position data and update state.
+     * Reduces code duplication between native and web implementations.
+     */
+    const processPosition = useCallback((coords: GeolocationCoordinates, platform: 'Native' | 'Web') => {
+        const userLoc: UserLocation = {
+            lat: coords.latitude,
+            lng: coords.longitude,
+            source: 'gps',
+            timestamp: Date.now(),
+            description: 'Current GPS location',
+        };
+
+        console.log(`[Geolocation] ${platform} location obtained:`, userLoc);
+        setLocation(userLoc);
+        setUserLocation(userLoc);
+    }, [setUserLocation]);
+
     const requestLocation = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -56,21 +74,12 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
                     timeout: 10000,
                 });
 
-                const userLoc: UserLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    source: 'gps',
-                    timestamp: Date.now(),
-                    description: 'Current GPS location',
-                };
-
-                console.log('[Geolocation] Native location obtained:', userLoc);
-                setLocation(userLoc);
-                setUserLocation(userLoc);
-                setLoading(false);
-            } catch (err: any) {
+                processPosition(position.coords, 'Native');
+            } catch (err) {
                 console.error('[Geolocation] Native error:', err);
-                setError(err.message || 'Unable to retrieve location');
+                const message = err instanceof Error ? err.message : 'Unable to retrieve location';
+                setError(message);
+            } finally {
                 setLoading(false);
             }
             return;
@@ -89,18 +98,11 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
         navigator.geolocation.getCurrentPosition(
             // Success callback
             (position) => {
-                const userLoc: UserLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    source: 'gps',
-                    timestamp: Date.now(),
-                    description: 'Current GPS location',
-                };
-
-                console.log('[Geolocation] Web location obtained:', userLoc);
-                setLocation(userLoc);
-                setUserLocation(userLoc);
-                setLoading(false);
+                try {
+                    processPosition(position.coords, 'Web');
+                } finally {
+                    setLoading(false);
+                }
             },
             // Error callback
             (err) => {
@@ -132,7 +134,7 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
                 maximumAge: 60000, // Cache for 1 minute
             }
         );
-    }, [setUserLocation]);
+    }, [processPosition]);
 
     // Auto-request location when enabled
     useEffect(() => {
