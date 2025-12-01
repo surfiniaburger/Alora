@@ -6,12 +6,15 @@
 /**
  * Geolocation Hook for EV Mode
  * 
- * Attempts to get the user's GPS location via the browser Geolocation API.
+ * Attempts to get the user's GPS location via the browser Geolocation API
+ * or Capacitor Geolocation plugin when running natively.
  * Updates the EV mode store when a location is obtained or when an error occurs.
  */
 
 import { useEffect, useState, useCallback } from 'react';
 import { useEVModeStore, UserLocation } from '@/lib/ev-mode-state';
+import { Geolocation } from '@capacitor/geolocation';
+import { Capacitor } from '@capacitor/core';
 
 interface GeolocationResult {
     location: UserLocation | null;
@@ -32,8 +35,48 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
     const [loading, setLoading] = useState(false);
     const setUserLocation = useEVModeStore(state => state.setUserLocation);
 
-    const requestLocation = useCallback(() => {
-        // Check if geolocation is supported
+    const requestLocation = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
+        // Native (Android/iOS)
+        if (Capacitor.isNativePlatform()) {
+            console.log('[Geolocation] Requesting native location...');
+            try {
+                const permissionStatus = await Geolocation.checkPermissions();
+                if (permissionStatus.location !== 'granted') {
+                    const requestStatus = await Geolocation.requestPermissions();
+                    if (requestStatus.location !== 'granted') {
+                        throw new Error('Location permission denied');
+                    }
+                }
+
+                const position = await Geolocation.getCurrentPosition({
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                });
+
+                const userLoc: UserLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    source: 'gps',
+                    timestamp: Date.now(),
+                    description: 'Current GPS location',
+                };
+
+                console.log('[Geolocation] Native location obtained:', userLoc);
+                setLocation(userLoc);
+                setUserLocation(userLoc);
+                setLoading(false);
+            } catch (err: any) {
+                console.error('[Geolocation] Native error:', err);
+                setError(err.message || 'Unable to retrieve location');
+                setLoading(false);
+            }
+            return;
+        }
+
+        // Web Fallback
         if (!navigator.geolocation) {
             const errorMsg = 'Geolocation is not supported by your browser';
             console.log('[Geolocation] Not supported');
@@ -42,10 +85,7 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
             return;
         }
 
-        console.log('[Geolocation] Requesting location...');
-        setLoading(true);
-        setError(null);
-
+        console.log('[Geolocation] Requesting web location...');
         navigator.geolocation.getCurrentPosition(
             // Success callback
             (position) => {
@@ -57,7 +97,7 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
                     description: 'Current GPS location',
                 };
 
-                console.log('[Geolocation] Location obtained:', userLoc);
+                console.log('[Geolocation] Web location obtained:', userLoc);
                 setLocation(userLoc);
                 setUserLocation(userLoc);
                 setLoading(false);
