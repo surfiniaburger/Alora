@@ -25,11 +25,15 @@ import StreamingConsole from './components/streaming-console/StreamingConsole';
 import PopUp from './components/popup/PopUp';
 import Sidebar from './components/Sidebar';
 import TelemetryPanel from './components/telemetry/TelemetryPanel';
+import EVModeToggle from './components/EVModeToggle';
+import EVStationPanel from './components/ev/EVStationPanel';
+import DebugPanel from './components/DebugPanel';
 import { LiveAPIProvider } from './contexts/LiveAPIContext';
 // FIX: Correctly import APIProvider as a named export.
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Map3D, Map3DCameraProps } from './components/map-3d';
 import { useMapStore, useTelemetryStore } from './lib/state';
+import { useEVModeStore } from './lib/ev-mode-state';
 import { MapController } from './lib/map-controller';
 import { useTelemetrySimulation } from './hooks/use-telemetry';
 
@@ -178,6 +182,24 @@ function AppComponent() {
     };
   }, []);
 
+  // Effect: Update EV station markers when stations are found
+  // This connects the EV tool results with the 3D map visualization
+  const { nearbyStations, isEVModeActive } = useEVModeStore();
+  useEffect(() => {
+    if (mapController.current) {
+      if (!isEVModeActive) {
+        mapController.current.clearEVMarkers();
+      } else if (nearbyStations.length > 0) {
+        mapController.current.addEVStationMarkers(nearbyStations);
+      }
+    }
+  }, [nearbyStations, isEVModeActive]);
+
+  useEffect(() => {
+    console.log('[EV Tool] App mounted - DebugPanel test log');
+    console.log('[Tool Registry] DebugPanel test log');
+  }, []);
+
   const handleClosePopUp = () => {
     setShowPopUp(false);
   };
@@ -250,12 +272,15 @@ function AppComponent() {
       padding={padding}
     >
       <ErrorScreen />
+      <EVModeToggle />
+      <DebugPanel />
       <Sidebar />
       {showPopUp && <PopUp onClose={handleClosePopUp} />}
       <div className="streaming-console">
         {/* Console panel is now styled to be on the right via CSS */}
         <div className="console-panel" ref={consolePanelRef}>
           <TelemetryPanel />
+          <EVStationPanel />
           <StreamingConsole />
           <ControlTray trayRef={controlTrayRef} />
         </div>

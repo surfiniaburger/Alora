@@ -32,7 +32,7 @@ import { audioContext } from '../lib/utils';
 import VolMeterWorket from '../lib/worklets/vol-meter';
 import { useLogStore, useMapStore, useSettings } from '@/lib/state';
 import { GenerateContentResponse, GroundingChunk } from '@google/genai';
-import { ToolContext, toolRegistry } from '@/lib/tools/tool-registry';
+import { ToolContext, getToolRegistry } from '@/lib/tools/tool-registry';
 
 
 export type UseLiveApiResults = {
@@ -216,7 +216,10 @@ export function useLiveApi({
 
           let toolResponse: GenerateContentResponse | string = 'ok';
           try {
-            const toolImplementation = toolRegistry[fc.name];
+            // Get the appropriate tool registry based on current template
+            const template = useSettings.getState().template;
+            const activeToolRegistry = getToolRegistry(template);
+            const toolImplementation = activeToolRegistry[fc.name];
             if (toolImplementation) {
               toolResponse = await toolImplementation(fc.args, toolContext);
             } else {

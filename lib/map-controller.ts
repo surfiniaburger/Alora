@@ -41,7 +41,7 @@ export class MapController {
   private trackPolyline: google.maps.maps3d.Polyline3DElement | null = null;
   private carMarker: google.maps.maps3d.Marker3DInteractiveElement | null = null;
   private ghostMarker: google.maps.maps3d.Marker3DInteractiveElement | null = null;
-  
+
   // Tool/Search Markers
   private toolMarkers: google.maps.maps3d.Marker3DInteractiveElement[] = [];
 
@@ -86,7 +86,7 @@ export class MapController {
       this.trackPolyline.coordinates = path;
       return;
     }
-    
+
     this.trackPolyline = new this.maps3dLib.Polyline3DElement({
       coordinates: path,
       strokeColor: 'rgba(235, 10, 30, 0.8)', // GR Red with opacity
@@ -100,7 +100,7 @@ export class MapController {
    * Updates the position of the race cars.
    */
   updateRaceCars(
-    carPos?: google.maps.LatLngAltitudeLiteral, 
+    carPos?: google.maps.LatLngAltitudeLiteral,
     ghostPos?: google.maps.LatLngAltitudeLiteral,
     carHeading?: number,
     ghostHeading?: number
@@ -127,7 +127,7 @@ export class MapController {
           label: 'GR SUPRA',
           drawsWhenOccluded: true,
         });
-        
+
         const template = document.createElement('template');
         template.innerHTML = svgContent;
         this.carMarker.append(template);
@@ -161,7 +161,7 @@ export class MapController {
           label: 'RIVAL',
           drawsWhenOccluded: true,
         });
-        
+
         const template = document.createElement('template');
         template.innerHTML = svgContent;
         this.ghostMarker.append(template);
@@ -232,4 +232,96 @@ export class MapController {
       roll: 0,
     });
   }
+
+  /**
+   * Adds EV charging station markers to the 3D map with custom styling.
+   * Each marker displays a green lightning bolt icon and is clickable.
+   * 
+   * @param stations - Array of EV charging stations to display
+   */
+  addEVStationMarkers(stations: import('@/lib/ev-mode-state').EVChargingStation[]) {
+    // Clear existing EV markers first
+    this.clearEVMarkers();
+
+    // Import EV store for click handling
+    const { useEVModeStore } = require('@/lib/ev-mode-state');
+
+    for (const station of stations) {
+      const marker = new this.maps3dLib.Marker3DInteractiveElement({
+        position: {
+          lat: station.position.lat,
+          lng: station.position.lng,
+          altitude: station.position.altitude,
+        },
+        // @ts-ignore - altitudeMode type issue
+        altitudeMode: 'RELATIVE_TO_MESH',
+        label: station.name,
+        title: `${station.name} - ${station.distance.toFixed(1)} mi`,
+        drawsWhenOccluded: true,
+      });
+
+      // Create custom SVG icon for EV charging stations
+      const template = document.createElement('template');
+      template.innerHTML = `
+        <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer glow circle -->
+          <circle cx="24" cy="24" r="20" fill="#00d084" opacity="0.2"/>
+          <circle cx="24" cy="24" r="16" fill="#00d084" opacity="0.3"/>
+          
+          <!-- Main circle background -->
+          <circle cx="24" cy="24" r="14" fill="#1a1a1a" stroke="#00d084" stroke-width="2"/>
+          
+          <!-- Lightning bolt icon -->
+          <path 
+            d="M26 12 L18 24 L22 24 L20 36 L28 24 L24 24 Z" 
+            fill="#00d084" 
+            stroke="white" 
+            stroke-width="1"
+            stroke-linejoin="round"
+          />
+          
+          <!-- Pulse animation circle -->
+          <circle cx="24" cy="24" r="18" fill="none" stroke="#00d084" stroke-width="2" opacity="0.6">
+            <animate attributeName="r" from="14" to="22" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      `.trim();
+
+      marker.append(template.content.cloneNode(true));
+      this.map.appendChild(marker);
+      this.evMarkers.push(marker);
+
+      // Add click handler to select station
+      marker.addEventListener('gmp-click', () => {
+        useEVModeStore.getState().selectStation(station);
+
+        // Zoom to the selected station
+        this.flyTo({
+          center: {
+            lat: station.position.lat,
+            lng: station.position.lng,
+            altitude: station.position.altitude,
+          },
+          range: 300,
+          tilt: 65,
+          heading: 0,
+          roll: 0,
+        });
+      });
+    }
+  }
+
+  /**
+   * Clears all EV charging station markers from the map.
+   */
+  clearEVMarkers() {
+    for (const marker of this.evMarkers) {
+      this.map.removeChild(marker);
+    }
+    this.evMarkers = [];
+  }
+
+  // Private array to track EV markers
+  private evMarkers: google.maps.maps3d.Marker3DInteractiveElement[] = [];
 }

@@ -4,19 +4,23 @@
 */
 import { create } from 'zustand';
 import { itineraryPlannerTools } from './tools/itinerary-planner';
+import { evAssistantTools } from './tools/ev-assistant-tools';
 
-export type Template = 'race-strategy';
+export type Template = 'race-strategy' | 'ev-assistant';
 
 const toolsets: Record<Template, FunctionCall[]> = {
   'race-strategy': itineraryPlannerTools,
+  'ev-assistant': evAssistantTools,
 };
 
 import {
   RACE_ENGINEER_PROMPT,
   SCAVENGER_HUNT_PROMPT,
+  EV_ASSISTANT_PROMPT,
 } from './constants.ts';
 const systemPrompts: Record<Template, string> = {
   'race-strategy': RACE_ENGINEER_PROMPT,
+  'ev-assistant': EV_ASSISTANT_PROMPT,
 };
 
 import { DEFAULT_LIVE_API_MODEL, DEFAULT_VOICE } from './constants';
@@ -51,10 +55,12 @@ export const useSettings = create<{
   voice: string;
   isEasterEggMode: boolean;
   activePersona: string;
+  template: Template;
   setSystemPrompt: (prompt: string) => void;
   setModel: (model: string) => void;
   setVoice: (voice: string) => void;
   setPersona: (persona: string) => void;
+  setTemplate: (template: Template) => void;
   activateEasterEggMode: () => void;
 }>(set => ({
   systemPrompt: systemPrompts['race-strategy'],
@@ -62,6 +68,7 @@ export const useSettings = create<{
   voice: DEFAULT_VOICE,
   isEasterEggMode: false,
   activePersona: SCAVENGER_HUNT_PERSONA,
+  template: 'race-strategy',
   setSystemPrompt: prompt => set({ systemPrompt: prompt }),
   setModel: model => set({ model }),
   setVoice: voice => set({ voice }),
@@ -73,6 +80,13 @@ export const useSettings = create<{
         voice: personas[persona].voice,
       });
     }
+  },
+  setTemplate: (template: Template) => {
+    console.log('[Settings] setTemplate called:', template);
+    set({
+      template,
+      systemPrompt: systemPrompts[template],
+    });
   },
   activateEasterEggMode: () => {
     set(state => {
@@ -110,13 +124,7 @@ export const useUI = create<{
 /**
  * Tools
  */
-export interface FunctionCall {
-  name: string;
-  description?: string;
-  parameters?: any;
-  isEnabled: boolean;
-  scheduling?: FunctionResponseScheduling;
-}
+import { FunctionCall } from './tools/tool-types';
 
 
 
@@ -128,8 +136,10 @@ export const useTools = create<{
   tools: itineraryPlannerTools,
   template: 'race-strategy',
   setTemplate: (template: Template) => {
+    console.log('[State] useTools.setTemplate called:', template);
     set({ tools: toolsets[template], template });
-    useSettings.getState().setSystemPrompt(systemPrompts[template]);
+    // Sync with useSettings
+    useSettings.getState().setTemplate(template);
   },
 }));
 

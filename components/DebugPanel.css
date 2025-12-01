@@ -1,0 +1,115 @@
+.debug-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.debug-toggle:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+.debug-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 500px;
+    height: 400px;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+}
+
+.debug-header {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.debug-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 14px;
+}
+
+.debug-actions button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #ccc;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.debug-actions button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.debug-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.log-entry {
+    padding: 4px;
+    border-radius: 2px;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.log-entry.info {
+    color: #ccc;
+}
+
+.log-entry.warn {
+    color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.log-entry.error {
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.1);
+    border-left: 2px solid #ff4d4d;
+}
+
+.timestamp {
+    color: #666;
+    margin-right: 8px;
+    font-size: 10px;
+}
+
+.no-logs {
+    color: #666;
+    text-align: center;
+    margin-top: 20px;
+    font-style: italic;
+}
