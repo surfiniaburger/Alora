@@ -22,6 +22,7 @@
 import { Map3DCameraProps } from '@/components/map-3d';
 import { lookAtWithPadding } from './look-at';
 import { MapMarker } from './state';
+import { useEVModeStore } from '@/lib/ev-mode-state';
 
 type MapControllerDependencies = {
   map: google.maps.maps3d.Map3DElement;
@@ -39,6 +40,7 @@ export class MapController {
 
   // Race Layer Elements
   private trackPolyline: google.maps.maps3d.Polyline3DElement | null = null;
+  private routePolyline: google.maps.maps3d.Polyline3DElement | null = null;
   private carMarker: google.maps.maps3d.Marker3DInteractiveElement | null = null;
   private ghostMarker: google.maps.maps3d.Marker3DInteractiveElement | null = null;
 
@@ -94,6 +96,34 @@ export class MapController {
       altitudeMode: 'RELATIVE_TO_MESH'
     });
     this.map.appendChild(this.trackPolyline);
+  }
+
+  /**
+   * Draws a navigation route on the map.
+   */
+  drawRoute(path: google.maps.LatLngAltitudeLiteral[]) {
+    if (this.routePolyline) {
+      this.routePolyline.coordinates = path;
+      return;
+    }
+
+    this.routePolyline = new this.maps3dLib.Polyline3DElement({
+      coordinates: path,
+      strokeColor: 'rgba(0, 208, 132, 0.8)', // EV Green
+      strokeWidth: 6,
+      altitudeMode: 'RELATIVE_TO_MESH'
+    });
+    this.map.appendChild(this.routePolyline);
+  }
+
+  /**
+   * Clears the navigation route from the map.
+   */
+  clearRoute() {
+    if (this.routePolyline) {
+      this.map.removeChild(this.routePolyline);
+      this.routePolyline = null;
+    }
   }
 
   /**
@@ -242,9 +272,6 @@ export class MapController {
   addEVStationMarkers(stations: import('@/lib/ev-mode-state').EVChargingStation[]) {
     // Clear existing EV markers first
     this.clearEVMarkers();
-
-    // Import EV store for click handling
-    const { useEVModeStore } = require('@/lib/ev-mode-state');
 
     for (const station of stations) {
       const marker = new this.maps3dLib.Marker3DInteractiveElement({

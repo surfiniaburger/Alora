@@ -19,9 +19,9 @@ code {
   --gr-red-hover: #c00014;
   --gr-white: #ffffff;
   --gr-gray: #4d4d4d;
-  
+
   --text: var(--gr-white);
-  
+
   /* Overriding previous variables for compatibility */
   --gray-200: #b4b8bb;
   --gray-300: #cccccc;
@@ -31,26 +31,27 @@ code {
   --gray-800: #3c4043;
   --gray-900: #000000;
   --gray-1000: #0a0a0a;
-  
+
   --border-stroke: #444444;
-  
+
   /* Replaced Blues with GR Red/Grays */
   --accent-blue: var(--gr-red);
   --accent-blue-active-bg: #2a0003;
   --accent-blue-active: var(--gr-red);
   --accent-blue-headers: var(--gr-red);
-  --accent-green: #ffffff; /* User text usually white in high contrast */
-  
+  --accent-green: #ffffff;
+  /* User text usually white in high contrast */
+
   --midnight-blue: #000000;
   --blue-30: #ff9999;
   --accent-red: var(--gr-red);
-  
+
   --background: var(--gr-black);
   --color: var(--text);
-  
+
   scrollbar-color: var(--gr-gray) var(--gr-black);
   scrollbar-width: thin;
-  
+
   --font-family: 'Roboto Mono', 'Space Mono', monospace;
 
   /* Colors Mapped */
@@ -64,27 +65,28 @@ code {
   --Neutral-60: #888d8f;
   --Neutral-80: #c3c6c7;
   --Neutral-90: #e1e2e3;
-  
+
   --Green-400: #57e092;
   --Green-500: #0d9c53;
   --Green-700: #025022;
   --Green-800: #0a3d20;
-  
+
   /* Remap Blue vars to Red for specific UI elements */
   --Blue-400: #ff4d5e;
   --Blue-500: var(--gr-red);
   --Blue-800: #4a0005;
-  
+
   --Red-400: #ff9c7a;
   --Red-500: #ff4600;
   --Red-600: #e03c00;
   --Red-700: #bd3000;
   --Red-800: #5c1300;
-  
+
   --card-header: var(--gr-red);
   --card-border: var(--gr-red);
   --card-background: #13151a;
-  --card-border-radius: 4px; /* Sharper edges */
+  --card-border-radius: 4px;
+  /* Sharper edges */
 
   --breakpoint-md: 768px;
 }
@@ -170,14 +172,16 @@ li {
   transition: opacity 0.2s;
 }
 
-.tool-checkbox-wrapper input[type='checkbox']:checked + .checkbox-visual {
+.tool-checkbox-wrapper input[type='checkbox']:checked+.checkbox-visual {
   background-color: var(--gr-red);
   border-color: var(--gr-red);
 }
-.tool-checkbox-wrapper input[type='checkbox']:checked + .checkbox-visual::after {
+
+.tool-checkbox-wrapper input[type='checkbox']:checked+.checkbox-visual::after {
   opacity: 1;
 }
-.tool-checkbox-wrapper input[type='checkbox']:focus-visible + .checkbox-visual {
+
+.tool-checkbox-wrapper input[type='checkbox']:focus-visible+.checkbox-visual {
   outline: 2px solid var(--gr-red);
   outline-offset: 2px;
 }
@@ -286,8 +290,10 @@ button .icon {
   width: 25%;
   min-width: 400px;
   position: absolute;
-  right: 0; /* Align to right */
-  left: auto; /* Unset left */
+  right: 0;
+  /* Align to right */
+  left: auto;
+  /* Unset left */
   top: 0;
   bottom: 0;
   z-index: 10;
@@ -302,7 +308,7 @@ button .icon {
 }
 
 gmp-place-details-compact {
-      color-scheme: dark;
+  color-scheme: dark;
 }
 
 .map-panel {
@@ -364,7 +370,8 @@ gmp-place-details-compact {
   transition: all 0.2s ease-in-out;
   width: 48px;
   height: 48px;
-  border-radius: 4px; /* Square buttons */
+  border-radius: 4px;
+  /* Square buttons */
   border: 1px solid rgba(0, 0, 0, 0);
   user-select: none;
 }
@@ -682,6 +689,7 @@ gmp-place-details-compact {
 .transcription-entry.user .avatar {
   background-color: var(--gr-red);
 }
+
 .transcription-entry.user .avatar .icon {
   color: white;
 }
@@ -701,7 +709,7 @@ gmp-place-details-compact {
 }
 
 .transcription-entry.agent .message-bubble {
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   color: var(--gr-white);
   border-left: 2px solid var(--gr-red);
 }
@@ -775,7 +783,8 @@ gmp-place-details-compact {
 .sidebar {
   position: fixed;
   top: 0;
-  left: 0; /* Settings sidebar on left to avoid clash with telemetry */
+  left: 0;
+  /* Settings sidebar on left to avoid clash with telemetry */
   width: 380px;
   max-width: 100%;
   height: 100vh;
@@ -1016,8 +1025,13 @@ gmp-place-details-compact {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Desktop Overrides --- */
@@ -1038,6 +1052,8 @@ gmp-place-details-compact {
   .console-panel {
     width: 100%;
     min-width: unset;
+    height: 50%;
+    /* Fixed height for split view */
     max-height: 50%;
     bottom: 0;
     top: auto;
@@ -1053,7 +1069,7 @@ gmp-place-details-compact {
 
   .map-panel {
     bottom: 0;
-    top:0;
+    top: 0;
   }
 
   .control-tray {
@@ -1084,7 +1100,8 @@ gmp-place-details-compact {
     border-right: none;
   }
 
-  .transcription-entry.agent, .transcription-entry.user {
+  .transcription-entry.agent,
+  .transcription-entry.user {
     max-width: 98%;
   }
 
@@ -1167,4 +1184,44 @@ gmp-place-details-compact {
     background-color: var(--Neutral-20);
     border-radius: 4px;
   }
+}
+
+/* EV Mode Theme Overrides */
+.transcription-view.ev-mode .transcription-entry.agent .message-bubble {
+  border-left-color: #00d084;
+  background-color: rgba(0, 208, 132, 0.1);
+}
+
+.transcription-view.ev-mode .transcription-entry.agent .avatar .icon {
+  color: #00d084;
+}
+
+.transcription-view.ev-mode .transcription-entry.user .message-bubble {
+  border-right-color: #00d084;
+}
+
+.transcription-view.ev-mode .transcription-entry.user .avatar {
+  background-color: #00d084;
+}
+
+.transcription-view.ev-mode .spinner {
+  border-top-color: #00d084;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--gray-500);
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 20px;
+}
+
+.empty-state .subtext {
+  font-size: 0.75rem;
+  margin-top: 8px;
+  opacity: 0.7;
 }

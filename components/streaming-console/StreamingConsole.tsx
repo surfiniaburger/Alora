@@ -49,6 +49,11 @@ const useMediaQuery = (query: string) => {
 };
 
 
+import StationList from '../ev/StationList';
+import BatteryStatus from '../ev/BatteryStatus';
+
+import { useEVModeStore } from '@/lib/ev-mode-state';
+
 export default function StreamingConsole() {
   const {
     client,
@@ -62,15 +67,24 @@ export default function StreamingConsole() {
   const { tools } = useTools();
   const turns = useLogStore(state => state.turns);
   const { showSystemMessages } = useUI();
+  const { isEVModeActive } = useEVModeStore();
   const isAwaitingFunctionResponse = useLogStore(
     state => state.isAwaitingFunctionResponse,
   );
   const scrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const displayedTurns = showSystemMessages
-    ? turns
-    : turns.filter(turn => turn.role !== 'system');
+  const displayedTurns = turns.filter(turn => {
+    if (showSystemMessages) return true;
+    if (turn.role !== 'system') return true;
+    // Show system turns if they contain EV tool calls
+    if (turn.toolUseRequest?.functionCalls.some(fc =>
+      ['findEVChargingStations', 'setEVVehicleProfile'].includes(fc.name)
+    )) {
+      return true;
+    }
+    return false;
+  });
 
   // Set the configuration for the Live API
   useEffect(() => {
@@ -286,11 +300,39 @@ export default function StreamingConsole() {
   return (
     <div className="transcription-container">
       {displayedTurns.length === 0 && !isAwaitingFunctionResponse ? (
-        <div></div>
+        <div className="empty-state">
+          <p>Ready to assist.</p>
+          <p className="subtext">Tap the keyboard icon to start.</p>
+        </div>
       ) : (
-        <div className="transcription-view" ref={scrollRef}>
+        <div className={`transcription-view ${isEVModeActive ? 'ev-mode' : ''}`} ref={scrollRef}>
           {displayedTurns.map((t) => {
+            // Handle System Messages (Logs or Tool Calls)
             if (t.role === 'system') {
+              // Check for EV Tool Calls to render UI
+              if (t.toolUseRequest) {
+                const isStationSearch = t.toolUseRequest.functionCalls.some(fc => fc.name === 'findEVChargingStations');
+                const isProfileSetup = t.toolUseRequest.functionCalls.some(fc => fc.name === 'setEVVehicleProfile');
+
+                if (isStationSearch) {
+                  return (
+                    <div key={t.timestamp.toISOString()} className="transcription-entry system tool-output">
+                      <StationList />
+                    </div>
+                  );
+                }
+                if (isProfileSetup) {
+                  return (
+                    <div key={t.timestamp.toISOString()} className="transcription-entry system tool-output">
+                      <BatteryStatus />
+                    </div>
+                  );
+                }
+              }
+
+              // Normal system logs (hidden unless debug mode is on)
+              if (!showSystemMessages) return null;
+
               return (
                 <div
                   key={t.timestamp.toISOString()}

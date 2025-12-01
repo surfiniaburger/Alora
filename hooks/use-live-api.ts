@@ -54,22 +54,25 @@ export type UseLiveApiResults = {
   clearHeldGroundedResponse: () => void;
 };
 
+export type UseLiveApiProps = {
+  apiKey: string;
+  map: google.maps.maps3d.Map3DElement | null;
+  placesLib: google.maps.PlacesLibrary | null;
+  routesLib: google.maps.RoutesLibrary | null;
+  elevationLib: google.maps.ElevationLibrary | null;
+  geocoder: google.maps.Geocoder | null;
+  padding: [number, number, number, number];
+};
 
 export function useLiveApi({
   apiKey,
   map,
   placesLib,
+  routesLib,
   elevationLib,
   geocoder,
   padding,
-}: {
-  apiKey: string;
-  map: google.maps.maps3d.Map3DElement | null;
-  placesLib: google.maps.PlacesLibrary | null;
-  elevationLib: google.maps.ElevationLibrary | null;
-  geocoder: google.maps.Geocoder | null;
-  padding: [number, number, number, number];
-}): UseLiveApiResults {
+}: UseLiveApiProps): UseLiveApiResults {
   const { model } = useSettings();
   const client = useMemo(() => new GenAILiveClient(apiKey, model), [apiKey, model]);
 
@@ -195,6 +198,7 @@ export function useLiveApi({
         const toolContext: ToolContext = {
           map,
           placesLib,
+          routesLib,
           elevationLib,
           geocoder,
           padding,
@@ -202,6 +206,13 @@ export function useLiveApi({
           setHeldGroundingChunks,
         };
 
+        // Log the tool call for UI rendering (e.g. EV Station List)
+        useLogStore.getState().addTurn({
+          role: 'system',
+          text: '',
+          isFinal: true,
+          toolUseRequest: toolCall,
+        });
 
         for (const fc of toolCall.functionCalls) {
           // Log the function call trigger
@@ -288,7 +299,7 @@ export function useLiveApi({
       client.off('toolcall', onToolCall);
       client.off('generationcomplete', onGenerationComplete);
     };
-  }, [client, map, placesLib, elevationLib, geocoder, padding, setHeldGroundedResponse, setHeldGroundingChunks]);
+  }, [client, map, placesLib, routesLib, elevationLib, geocoder, padding, setHeldGroundedResponse, setHeldGroundingChunks]);
 
 
   const connect = useCallback(async () => {
