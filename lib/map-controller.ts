@@ -22,6 +22,7 @@
 import { Map3DCameraProps } from '@/components/map-3d';
 import { lookAtWithPadding } from './look-at';
 import { MapMarker } from './state';
+import { useEVModeStore } from '@/lib/ev-mode-state';
 
 type MapControllerDependencies = {
   map: google.maps.maps3d.Map3DElement;
@@ -242,9 +243,6 @@ export class MapController {
   addEVStationMarkers(stations: import('@/lib/ev-mode-state').EVChargingStation[]) {
     // Clear existing EV markers first
     this.clearEVMarkers();
-
-    // Import EV store for click handling
-    const { useEVModeStore } = require('@/lib/ev-mode-state');
 
     for (const station of stations) {
       const marker = new this.maps3dLib.Marker3DInteractiveElement({
