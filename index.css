@@ -1386,7 +1386,7 @@ gmp-place-details-compact {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.floating-prompt-form button {
+.floating-prompt-form .send-button {
   background: var(--gr-red);
   border: none;
   border-radius: 12px;
