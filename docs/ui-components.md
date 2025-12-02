@@ -298,7 +298,7 @@ interface DebugPanelProps {
 - Used for: Active states, gear indicator, brand accents
 
 **Glassmorphism:**
-- Background: `rgba(0, 0, 0, 0.6-0.8)`
+- Background: `rgba(0, 0, 0, 0.7)`
 - Backdrop filter: `blur(10-12px)`
 - Border: `1px solid rgba(255, 255, 255, 0.1-0.15)`
 
