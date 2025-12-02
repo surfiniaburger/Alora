@@ -105,7 +105,7 @@ interface ChargingStation {
 
 **Implementation:**
 ```tsx
-export const setEVVehicleProfile = implementTool(
+export const setEVVehicleProfile = implementTool({
   declaration: EVToolDeclarations.setEVVehicleProfile,
   handler: async (args, context) => {
     const profile = {
