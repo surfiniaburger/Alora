@@ -307,7 +307,7 @@ const MILES_PER_KWH_ESTIMATE = 3; // Industry average
 
 const rangeNeeded = station.distanceMiles;
 const energyNeeded = rangeNeeded / MILES_PER_KWH_ESTIMATE;
-const percentNeeded = (energyNeeded / vehicle.batteryCapacityKWh) * 100;
+const percentNeeded = (energyNeeded / vehicleProfile.batteryCapacityKWh) * 100;
 ```
 
 **Connector Icons:**
