@@ -1,13 +1,101 @@
+/* Floating Glass Card at top-right */
 .telemetry-panel {
-    background-color: var(--gr-black);
-    border-bottom: 1px solid var(--border-stroke);
-    padding: 15px;
-    color: white;
-    font-family: 'Roboto Mono', monospace;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 12px 16px;
+    pointer-events: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    min-width: 280px;
+}
+
+.telemetry-grid-compact {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.telemetry-item {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    flex-shrink: 0; /* Prevent shrinking when console fills up */
+    gap: 4px;
+}
+
+.telemetry-item .label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.telemetry-item .value-large {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.telemetry-item .value-large .unit {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 4px;
+}
+
+.telemetry-item .value-gear {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gr-red);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.telemetry-item .value-delta {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.telemetry-item .value-delta.delta-green {
+    color: #0d9c53;
+}
+
+.telemetry-item .value-delta.delta-red {
+    color: #eb0a1e;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .telemetry-panel {
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 8px 12px;
+        min-width: 200px;
+    }
+
+    .telemetry-grid-compact {
+        gap: 12px;
+    }
+
+    .telemetry-item .value-large {
+        font-size: 20px;
+    }
+
+    .telemetry-item .value-gear {
+        font-size: 24px;
+    }
+
+    .telemetry-item .value-delta {
+        font-size: 14px;
+    }
 }
 
 .telemetry-header {
@@ -43,7 +131,7 @@
 }
 
 .telemetry-cell {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     padding: 10px;
     border-radius: 4px;
     display: flex;
@@ -109,11 +197,24 @@
     font-weight: bold;
 }
 
-.delta-green { color: #0d9c53; }
-.delta-red { color: #eb0a1e; }
+.delta-green {
+    color: #0d9c53;
+}
+
+.delta-red {
+    color: #eb0a1e;
+}
 
 @keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }

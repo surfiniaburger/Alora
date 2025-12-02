@@ -8,9 +8,13 @@ interface LogEntry {
     data?: any;
 }
 
-export default function DebugPanel() {
+interface DebugPanelProps {
+    isVisible: boolean;
+    onToggle: () => void;
+}
+
+export default function DebugPanel({ isVisible, onToggle }: DebugPanelProps) {
     const [logs, setLogs] = useState<LogEntry[]>([]);
-    const [isVisible, setIsVisible] = useState(false);
     const logsEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -71,15 +75,7 @@ export default function DebugPanel() {
     }, [logs, isVisible]);
 
     if (!isVisible) {
-        return (
-            <button
-                className="debug-toggle"
-                onClick={() => setIsVisible(true)}
-                title="Show Debug Logs"
-            >
-                🐞
-            </button>
-        );
+        return null;
     }
 
     return (
@@ -88,7 +84,7 @@ export default function DebugPanel() {
                 <h3>Debug Logs</h3>
                 <div className="debug-actions">
                     <button onClick={() => setLogs([])}>Clear</button>
-                    <button onClick={() => setIsVisible(false)}>Close</button>
+                    <button onClick={onToggle}>Close</button>
                 </div>
             </div>
             <div className="debug-content">

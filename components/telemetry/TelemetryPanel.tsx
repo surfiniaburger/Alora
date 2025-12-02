@@ -2,85 +2,58 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import React from 'react';
+import React, { useRef } from 'react';
 import { useTelemetryStore } from '../../lib/state';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import './TelemetryPanel.css';
 
 export default function TelemetryPanel() {
-  const { data } = useTelemetryStore();
+    const { data } = useTelemetryStore();
+    const panelRef = useRef<HTMLDivElement>(null);
 
-  // Tire color logic
-  let tireColor = '#0d9c53'; // Green
-  if (data.tireHealth < 70) tireColor = '#f5a623'; // Yellow
-  // MATCHING PROMPT LOGIC: Red if < 45% (Critical/Box Window)
-  if (data.tireHealth < 45) tireColor = '#eb0a1e'; // Red
+    // Slide-down entrance animation
+    useGSAP(() => {
+        if (panelRef.current) {
+            gsap.fromTo(
+                panelRef.current,
+                { y: -100, opacity: 0 },
+                { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
+            );
+        }
+    }, []);
 
-  // Delta Formatting
-  const deltaVal = data.lapDelta;
-  const deltaColor = deltaVal <= 0 ? 'delta-green' : 'delta-red';
-  // Ensure + sign for positive numbers. Negative numbers usually bring their own sign via toFixed.
-  const formattedDelta = (deltaVal > 0 ? '+' : '') + deltaVal.toFixed(2);
+    // Delta Formatting
+    const deltaVal = data.lapDelta;
+    const deltaColor = deltaVal <= 0 ? 'delta-green' : 'delta-red';
+    const formattedDelta = (deltaVal > 0 ? '+' : '') + deltaVal.toFixed(2);
 
-  return (
-    <div className="telemetry-panel">
-      <div className="telemetry-header">
-        <h2>GR SUPRA GT4 // LIVE</h2>
-        <span className="live-indicator">TX ACTIVE</span>
-      </div>
+    return (
+        <div className="telemetry-panel" ref={panelRef}>
+            {/* Compact Grid: Speed, Gear, Delta */}
+            <div className="telemetry-grid-compact">
+                {/* Speed */}
+                <div className="telemetry-item">
+                    <span className="label">Speed</span>
+                    <div className="value-large">
+                        {Math.round(data.speed)}<span className="unit">MPH</span>
+                    </div>
+                </div>
 
-      <div className="telemetry-grid">
-        {/* Speed & Gear */}
-        <div className="telemetry-cell large">
-            <div>
-                <span className="label">Speed</span>
-                <div className="speed-readout">
-                    {Math.round(data.speed)}<span className="unit">MPH</span>
+                {/* Gear */}
+                <div className="telemetry-item">
+                    <span className="label">Gear</span>
+                    <div className="value-gear">{data.gear}</div>
+                </div>
+
+                {/* Lap Delta */}
+                <div className="telemetry-item">
+                    <span className="label">Δ Lap</span>
+                    <div className={`value-delta ${deltaColor}`}>
+                        {formattedDelta}s
+                    </div>
                 </div>
             </div>
-            <div>
-                <span className="label" style={{textAlign: 'right', display: 'block'}}>Gear</span>
-                <div className="gear-readout">{data.gear}</div>
-            </div>
         </div>
-
-        {/* Tires */}
-        <div className="telemetry-cell">
-            <span className="label">Tire Deg.</span>
-            <div className="value">{data.tireHealth.toFixed(1)}%</div>
-            <div className="progress-container">
-                <div 
-                    className="progress-bar" 
-                    style={{ width: `${data.tireHealth}%`, backgroundColor: tireColor }}
-                ></div>
-            </div>
-        </div>
-
-        {/* Fuel */}
-        <div className="telemetry-cell">
-            <span className="label">Fuel Load</span>
-            <div className="value">{data.fuelLevel.toFixed(1)}%</div>
-             <div className="progress-container">
-                <div 
-                    className="progress-bar" 
-                    style={{ width: `${data.fuelLevel}%`, backgroundColor: '#fff' }}
-                ></div>
-            </div>
-        </div>
-
-        {/* Delta */}
-        <div className="telemetry-cell">
-            <span className="label">Lap Delta</span>
-            <div className={`delta-value ${deltaColor}`}>
-                {formattedDelta}s
-            </div>
-        </div>
-
-        {/* RPM */}
-        <div className="telemetry-cell">
-            <span className="label">RPM</span>
-            <div className="value">{Math.round(data.rpm).toLocaleString()}</div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
