@@ -108,10 +108,8 @@ describe('ErrorScreen', () => {
         const closeButton = screen.getByText('Close');
         fireEvent.click(closeButton);
 
-        // Should return to hidden state
-        const { container } = render(<ErrorScreen />); // Re-render to check state
-        // Note: In a real app, we'd check if the error screen is gone. 
-        // Here we can check if the error message is no longer visible
+        // Should return to hidden state. After clicking "Close", the error message
+        // should no longer be in the document.
         expect(screen.queryByText('Generic error')).not.toBeInTheDocument();
     });
 
