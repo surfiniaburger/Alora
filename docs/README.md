@@ -441,7 +441,7 @@ The `diagrams/` folder contains visual representations of:
 
 ## Version History
 
-- **v1.0** (Dec 2024): Initial comprehensive documentation
+- **v1.0** (Dec 2025): Initial comprehensive documentation
   - UI Components
   - EV Charging
   - Architecture
@@ -450,5 +450,5 @@ The `diagrams/` folder contains visual representations of:
 
 ---
 
-**Last Updated:** December 2, 2024  
+**Last Updated:** December 2, 2025  
 **Maintained By:** Alora Development Team
