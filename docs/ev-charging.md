@@ -6,7 +6,7 @@ The EV (Electric Vehicle) Charging feature enables Alora to find nearby charging
 
 ---
 
-##Architecture
+## Architecture
 
 ### Feature Toggle
 
