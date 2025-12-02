@@ -685,7 +685,7 @@ export class MockGenAILiveClient {
     this.emit('open', {});
   }
   
-  send RealtimeAudio(chunk: ArrayBuffer) {
+  sendRealtimeAudio(chunk: ArrayBuffer) {
     // Simulate server response
     setTimeout(() => {
       this.emit('audio', chunk); // Echo back
