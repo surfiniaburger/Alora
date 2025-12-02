@@ -349,7 +349,7 @@ See [Architecture](./architecture.md) for deployment details.
 ### Documentation Style Guide
 
 **Markdown formatting:**
-- Use `###` for main sections
+- Use `##` for main sections
 - Use code blocks with language specification
 - Include examples for concepts
 - Link to related documentation
