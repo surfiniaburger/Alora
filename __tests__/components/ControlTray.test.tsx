@@ -4,7 +4,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ControlTray from '../../components/ControlTray';
 import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 import { useUI, useSettings } from '../../lib/state';
@@ -91,32 +92,33 @@ describe('ControlTray', () => {
     });
 
     it('toggles connection on mic click', async () => {
+        const user = userEvent.setup();
         render(<ControlTray />);
         const micButton = screen.getByTitle('Connect & Start');
-        
-        await act(async () => {
-            fireEvent.click(micButton);
-        });
+
+        await user.click(micButton);
 
         expect(mockConnect).toHaveBeenCalled();
     });
 
-    it('opens quick menu on tools button click', () => {
+    it('opens quick menu on tools button click', async () => {
+        const user = userEvent.setup();
         render(<ControlTray />);
         const toolsButton = screen.getByTitle('Tools & Settings');
         expect(toolsButton).toBeInTheDocument();
 
-        fireEvent.click(toolsButton);
+        await user.click(toolsButton);
         expect(screen.getByText('Settings')).toBeInTheDocument();
         expect(screen.getByText('Show Telemetry')).toBeInTheDocument();
     });
 
-    it('toggles text input on keyboard button click', () => {
+    it('toggles text input on keyboard button click', async () => {
+        const user = userEvent.setup();
         render(<ControlTray />);
         const keyboardButton = screen.getByTitle('Toggle Text Input');
         expect(keyboardButton).toBeInTheDocument();
 
-        fireEvent.click(keyboardButton);
+        await user.click(keyboardButton);
         // When not connected, placeholder is different
         const input = screen.getByPlaceholderText('Connect to start typing...');
         expect(input).toBeInTheDocument();
