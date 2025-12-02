@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-// import WelcomeScreen from '../welcome-screen/WelcomeScreen';
-// FIX: Import LiveServerContent to correctly type the content handler.
 import { LiveConnectConfig, Modality, LiveServerContent } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 
 import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 import {
@@ -71,22 +71,67 @@ export default function StreamingConsole() {
   const isAwaitingFunctionResponse = useLogStore(
     state => state.isAwaitingFunctionResponse,
   );
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const displayedTurns = turns.filter(turn => {
-    if (showSystemMessages) return true;
-    if (turn.role !== 'system') return true;
-    // Show system turns if they contain EV tool calls
-    if (turn.toolUseRequest?.functionCalls.some(fc =>
-      ['findEVChargingStations', 'setEVVehicleProfile'].includes(fc.name)
-    )) {
-      return true;
+  // Transient HUD State
+  const [isVisible, setIsVisible] = useState(false);
+  const [latestTurn, setLatestTurn] = useState<ConversationTurn | null>(null);
+  const fadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Filter turns to find the last relevant one to display
+  useEffect(() => {
+    if (turns.length === 0) return;
+
+    const lastTurn = turns[turns.length - 1];
+
+    // Ignore system messages unless they are tool outputs we want to show
+    const isRelevantSystem = lastTurn.role === 'system' && (
+      showSystemMessages ||
+      lastTurn.toolUseRequest?.functionCalls.some(fc =>
+        ['findEVChargingStations', 'setEVVehicleProfile'].includes(fc.name)
+      )
+    );
+
+    if (lastTurn.role !== 'system' || isRelevantSystem) {
+      setLatestTurn(lastTurn);
+      setIsVisible(true);
+
+      // Reset timer
+      if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
+
+      // Auto-hide after 5 seconds of silence (if not a tool output which might need interaction)
+      const isToolOutput = lastTurn.role === 'system' && lastTurn.toolUseRequest;
+      if (!isToolOutput) {
+        fadeTimeoutRef.current = setTimeout(() => {
+          setIsVisible(false);
+        }, 5000);
+      }
     }
-    return false;
-  });
+  }, [turns, showSystemMessages]);
 
-  // Set the configuration for the Live API
+  // Animate HUD card visibility changes
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (cardRef.current) {
+      if (isVisible) {
+        // Entry animation
+        gsap.fromTo(
+          cardRef.current,
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' }
+        );
+      } else {
+        // Exit animation
+        gsap.to(cardRef.current, {
+          opacity: 0,
+          duration: 0.3,
+          ease: 'power2.in'
+        });
+      }
+    }
+  }, [isVisible]);
+
+  // Set the configuration for the Live API (Keep existing logic)
   useEffect(() => {
     const enabledTools = tools
       .filter(tool => tool.isEnabled)
@@ -99,8 +144,6 @@ export default function StreamingConsole() {
           },
         ],
       }));
-    // Using `any` for config to accommodate `speechConfig`, which is not in the
-    // current TS definitions but is used in the working reference example.
     const config: any = {
       responseModalities: [Modality.AUDIO],
       speechConfig: {
@@ -113,65 +156,46 @@ export default function StreamingConsole() {
       inputAudioTranscription: {},
       outputAudioTranscription: {},
       systemInstruction: {
-        parts: [
-          {
-            text: systemPrompt,
-          },
-        ],
+        parts: [{ text: systemPrompt }],
       },
       tools: enabledTools,
-      thinkingConfig: {
-        thinkingBudget: 0
-      },
+      thinkingConfig: { thinkingBudget: 0 },
     };
 
     setConfig(config);
   }, [setConfig, systemPrompt, tools, voice]);
 
+  // Handle Transcriptions (Keep existing logic)
   useEffect(() => {
-    const { addTurn, updateLastTurn, mergeIntoLastAgentTurn } =
-      useLogStore.getState();
+    const { addTurn, updateLastTurn, mergeIntoLastAgentTurn } = useLogStore.getState();
 
     const handleInputTranscription = (text: string, isFinal: boolean) => {
       const turns = useLogStore.getState().turns;
       const last = turns[turns.length - 1];
       if (last && last.role === 'user' && !last.isFinal) {
-        updateLastTurn({
-          text: last.text + text,
-          isFinal,
-        });
+        updateLastTurn({ text: last.text + text, isFinal });
       } else {
         addTurn({ role: 'user', text, isFinal });
       }
     };
 
     const handleOutputTranscription = (text: string, isFinal: boolean) => {
-      const { turns, updateLastTurn, addTurn, mergeIntoLastAgentTurn } =
-        useLogStore.getState();
+      const { turns, updateLastTurn, addTurn, mergeIntoLastAgentTurn } = useLogStore.getState();
       const last = turns[turns.length - 1];
 
       if (last && last.role === 'agent' && !last.isFinal) {
-        updateLastTurn({
-          text: last.text + text,
-          isFinal,
-        });
+        updateLastTurn({ text: last.text + text, isFinal });
       } else {
         const lastAgentTurnIndex = turns.map(t => t.role).lastIndexOf('agent');
         let shouldMerge = false;
         if (lastAgentTurnIndex !== -1) {
           const subsequentTurns = turns.slice(lastAgentTurnIndex + 1);
-          if (
-            subsequentTurns.length > 0 &&
-            subsequentTurns.every(t => t.role === 'system')
-          ) {
+          if (subsequentTurns.length > 0 && subsequentTurns.every(t => t.role === 'system')) {
             shouldMerge = true;
           }
         }
 
-        const turnData: Omit<ConversationTurn, 'timestamp' | 'role'> = {
-          text,
-          isFinal,
-        };
+        const turnData: Omit<ConversationTurn, 'timestamp' | 'role'> = { text, isFinal };
         if (heldGroundingChunks) {
           turnData.groundingChunks = heldGroundingChunks;
           clearHeldGroundingChunks();
@@ -190,13 +214,8 @@ export default function StreamingConsole() {
     };
 
     const handleContent = (serverContent: LiveServerContent) => {
-      const { turns, updateLastTurn, addTurn, mergeIntoLastAgentTurn } =
-        useLogStore.getState();
-      const text =
-        serverContent.modelTurn?.parts
-          ?.map((p: any) => p.text)
-          .filter(Boolean)
-          .join('') ?? '';
+      const { turns, updateLastTurn, addTurn, mergeIntoLastAgentTurn } = useLogStore.getState();
+      const text = serverContent.modelTurn?.parts?.map((p: any) => p.text).filter(Boolean).join('') ?? '';
       const groundingChunks = serverContent.groundingMetadata?.groundingChunks;
 
       if (!text && !groundingChunks) return;
@@ -204,14 +223,9 @@ export default function StreamingConsole() {
       const last = turns[turns.length - 1];
 
       if (last?.role === 'agent' && !last.isFinal) {
-        const updatedTurn: Partial<ConversationTurn> = {
-          text: last.text + text,
-        };
+        const updatedTurn: Partial<ConversationTurn> = { text: last.text + text };
         if (groundingChunks) {
-          updatedTurn.groundingChunks = [
-            ...(last.groundingChunks || []),
-            ...groundingChunks,
-          ];
+          updatedTurn.groundingChunks = [...(last.groundingChunks || []), ...groundingChunks];
         }
         updateLastTurn(updatedTurn);
       } else {
@@ -219,10 +233,7 @@ export default function StreamingConsole() {
         let shouldMerge = false;
         if (lastAgentTurnIndex !== -1) {
           const subsequentTurns = turns.slice(lastAgentTurnIndex + 1);
-          if (
-            subsequentTurns.length > 0 &&
-            subsequentTurns.every(t => t.role === 'system')
-          ) {
+          if (subsequentTurns.length > 0 && subsequentTurns.every(t => t.role === 'system')) {
             shouldMerge = true;
           }
         }
@@ -233,11 +244,7 @@ export default function StreamingConsole() {
           groundingChunks,
         };
         if (heldGroundingChunks) {
-          const combinedChunks = [
-            ...(heldGroundingChunks || []),
-            ...(newTurnData.groundingChunks || []),
-          ];
-          newTurnData.groundingChunks = combinedChunks;
+          newTurnData.groundingChunks = [...(heldGroundingChunks || []), ...(newTurnData.groundingChunks || [])];
           clearHeldGroundingChunks();
         }
         if (heldGroundedResponse) {
@@ -255,7 +262,6 @@ export default function StreamingConsole() {
 
     const handleTurnComplete = () => {
       const turns = useLogStore.getState().turns;
-      // FIX: Replace .at(-1) with array indexing for broader compatibility.
       const last = turns[turns.length - 1];
       if (last && !last.isFinal) {
         updateLastTurn({ isFinal: true });
@@ -275,170 +281,49 @@ export default function StreamingConsole() {
       client.off('turncomplete', handleTurnComplete);
       client.off('generationcomplete', handleTurnComplete);
     };
-  }, [
-    client,
-    heldGroundingChunks,
-    clearHeldGroundingChunks,
-    heldGroundedResponse,
-    clearHeldGroundedResponse,
-  ]);
+  }, [client, heldGroundingChunks, clearHeldGroundingChunks, heldGroundedResponse, clearHeldGroundedResponse]);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      // The widget has a 300ms transition for max-height. We need to wait
-      // for that transition to finish before we can accurately scroll to the bottom.
-      const scrollTimeout = setTimeout(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-      }, 350); // A little longer than the transition duration
 
-      return () => clearTimeout(scrollTimeout);
+  // Render Helper
+  const renderContent = (turn: ConversationTurn) => {
+    // 1. Tool Outputs (Station List, etc.)
+    if (turn.role === 'system' && turn.toolUseRequest) {
+      const isStationSearch = turn.toolUseRequest.functionCalls.some(fc => fc.name === 'findEVChargingStations');
+      const isProfileSetup = turn.toolUseRequest.functionCalls.some(fc => fc.name === 'setEVVehicleProfile');
+
+      if (isStationSearch) return <StationList />;
+      if (isProfileSetup) return <BatteryStatus />;
     }
-  }, [turns, isAwaitingFunctionResponse]);
+
+    // 2. Text Content (User or Agent)
+    return (
+      <div className="hud-message-content">
+        <div className={`hud-avatar ${turn.role}`}>
+          <span className="material-symbols-outlined">
+            {turn.role === 'user' ? 'person' : 'auto_awesome'}
+          </span>
+        </div>
+        <div className="hud-text">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {turn.text}
+          </ReactMarkdown>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="transcription-container">
-      {displayedTurns.length === 0 && !isAwaitingFunctionResponse ? (
-        <div className="empty-state">
-          <p>Ready to assist.</p>
-          <p className="subtext">Tap the keyboard icon to start.</p>
+    <div className={`hud-console-container ${isVisible ? 'visible' : 'hidden'}`}>
+      {latestTurn && (
+        <div className={`hud-card ${latestTurn.role}`} ref={cardRef}>
+          {renderContent(latestTurn)}
         </div>
-      ) : (
-        <div className={`transcription-view ${isEVModeActive ? 'ev-mode' : ''}`} ref={scrollRef}>
-          {displayedTurns.map((t) => {
-            // Handle System Messages (Logs or Tool Calls)
-            if (t.role === 'system') {
-              // Check for EV Tool Calls to render UI
-              if (t.toolUseRequest) {
-                const isStationSearch = t.toolUseRequest.functionCalls.some(fc => fc.name === 'findEVChargingStations');
-                const isProfileSetup = t.toolUseRequest.functionCalls.some(fc => fc.name === 'setEVVehicleProfile');
+      )}
 
-                if (isStationSearch) {
-                  return (
-                    <div key={t.timestamp.toISOString()} className="transcription-entry system tool-output">
-                      <StationList />
-                    </div>
-                  );
-                }
-                if (isProfileSetup) {
-                  return (
-                    <div key={t.timestamp.toISOString()} className="transcription-entry system tool-output">
-                      <BatteryStatus />
-                    </div>
-                  );
-                }
-              }
-
-              // Normal system logs (hidden unless debug mode is on)
-              if (!showSystemMessages) return null;
-
-              return (
-                <div
-                  key={t.timestamp.toISOString()}
-                  className={`transcription-entry system`}
-                >
-                  <div className="transcription-header">
-                    <div className="transcription-source">System</div>
-                    <div className="transcription-timestamp">
-                      {formatTimestamp(t.timestamp)}
-                    </div>
-                  </div>
-                  <div className="transcription-text-content">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.text}</ReactMarkdown>
-                  </div>
-                </div>
-              )
-            }
-            const widgetToken =
-              t.toolResponse?.candidates?.[0]?.groundingMetadata
-                ?.googleMapsWidgetContextToken;
-
-            let sources: { uri: string; title: string }[] = [];
-            if (t.groundingChunks) {
-              sources =
-                t.groundingChunks
-                  .map(chunk => {
-                    const source = chunk.web || chunk.maps;
-                    if (source && source.uri) {
-                      return {
-                        uri: source.uri,
-                        title: source.title || source.uri,
-                      };
-                    }
-                    return null;
-                  })
-                  .filter((s): s is { uri: string; title: string } => s !== null);
-
-              if (t.groundingChunks.length === 1) {
-                const chunk = t.groundingChunks[0];
-                // The type for `placeAnswerSources` might be missing or incomplete. Use `any` for safety.
-                const placeAnswerSources = (chunk.maps as any)?.placeAnswerSources;
-                if (
-                  placeAnswerSources &&
-                  Array.isArray(placeAnswerSources.reviewSnippets)
-                ) {
-                  const reviewSources = placeAnswerSources.reviewSnippets
-                    .map((review: any) => {
-                      if (review.googleMapsUri && review.title) {
-                        return {
-                          uri: review.googleMapsUri,
-                          title: review.title,
-                        };
-                      }
-                      return null;
-                    })
-                    .filter((s): s is { uri: string; title: string } => s !== null);
-                  sources.push(...reviewSources);
-                }
-              }
-            }
-
-            const hasSources = sources.length > 0;
-
-            return (
-              <div
-                key={t.timestamp.toISOString()}
-                className={`transcription-entry ${t.role} ${!t.isFinal ? 'interim' : ''
-                  }`}
-              >
-                <div className="avatar">
-                  <span className="icon">{t.role === 'user' ? 'person' : 'auto_awesome'}</span>
-                </div>
-                <div className="message-bubble">
-                  <div className="transcription-text-content">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {t.text}
-                    </ReactMarkdown>
-                  </div>
-                  {hasSources && (
-                    <SourcesPopover
-                      className="grounding-chunks"
-                      sources={sources}
-                    />
-                  )}
-                  {widgetToken && !isMobile && (
-                    <div
-                      style={{
-                        marginTop: '12px',
-                      }}
-                    >
-                      <GroundingWidget
-                        contextToken={widgetToken}
-                        mapHidden={true}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-          {isAwaitingFunctionResponse && (
-            <div className="spinner-container">
-              <div className="spinner"></div>
-              <p>Calling tool...</p>
-            </div>
-          )}
+      {isAwaitingFunctionResponse && (
+        <div className="hud-status-indicator">
+          <div className="spinner-small"></div>
+          <span>Processing...</span>
         </div>
       )}
     </div>

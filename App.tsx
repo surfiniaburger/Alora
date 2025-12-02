@@ -88,6 +88,7 @@ function AppComponent() {
   const routesLib = useMapsLibrary('routes');
 
   const [showPopUp, setShowPopUp] = useState(true);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   const consolePanelRef = useRef<HTMLDivElement>(null);
   const controlTrayRef = useRef<HTMLElement>(null);
@@ -143,24 +144,20 @@ function AppComponent() {
   // See `lib/look-at.ts` for how this padding is used.
   useEffect(() => {
     const calculatePadding = () => {
-      const consoleEl = consolePanelRef.current;
       const trayEl = controlTrayRef.current;
       const vh = window.innerHeight;
-      const vw = window.innerWidth;
 
-      if (!consoleEl || !trayEl) return;
-
-      const isMobile = window.matchMedia('(max-width: 768px)').matches;
-
+      // Base safe area padding
       const top = 0.05;
-      let right = 0.05;
-      let bottom = 0.05;
-      let left = 0.05;
+      const right = 0.05;
+      const left = 0.05;
+      let bottom = 0.1;
 
-      if (!isMobile) {
-        // On desktop, console is on the RIGHT. 
-        right = Math.max(right, (consoleEl.offsetWidth / vw) + 0.02); // add 2% buffer
-        // Left side is now clear for the map
+      // Adjust bottom padding for Control Tray
+      if (trayEl) {
+        const trayHeight = trayEl.offsetHeight;
+        // Convert pixel height to relative viewport fraction
+        bottom = Math.max(bottom, (trayHeight / vh) + 0.05);
       }
 
       setPadding([top, right, bottom, left]);
@@ -313,23 +310,30 @@ function AppComponent() {
     >
       <ErrorScreen />
       <EVModeToggle />
-      <DebugPanel />
+      <DebugPanel
+        isVisible={showDebugPanel}
+        onToggle={() => setShowDebugPanel(!showDebugPanel)}
+      />
       <Sidebar />
       {showPopUp && <PopUp onClose={handleClosePopUp} />}
-      <div className="streaming-console">
-        {/* Console panel is now styled to be on the right via CSS */}
-        <div className="console-panel" ref={consolePanelRef}>
-          {isTelemetryPanelOpen && <TelemetryPanel />}
-          {/* EV Station Panel removed in favor of chat integration */}
-          <StreamingConsole />
-          <ControlTray trayRef={controlTrayRef} />
-        </div>
-        <div className="map-panel">
+      <div className="app-container">
+        {/* Map Background (z-index: 0) */}
+        <div className="map-background">
           <Map3D
             ref={element => setMap(element ?? null)}
             onCameraChange={handleCameraChange}
             {...viewProps}>
           </Map3D>
+        </div>
+
+        {/* UI Overlay (z-index: 10, pointer-events: none) */}
+        <div className="ui-overlay" ref={consolePanelRef}>
+          {isTelemetryPanelOpen && <TelemetryPanel />}
+          <StreamingConsole />
+          <ControlTray
+            trayRef={controlTrayRef}
+            onToggleDebug={() => setShowDebugPanel(!showDebugPanel)}
+          />
         </div>
       </div>
     </LiveAPIProvider>
