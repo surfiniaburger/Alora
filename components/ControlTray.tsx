@@ -64,6 +64,23 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isTextEntryVisible, setIsTextEntryVisible] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isMenuOpen]);
 
   const { client, connected, connect, disconnect, audioStreamer } =
     useLiveAPIContext();
@@ -274,7 +291,7 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
 
           {/* Quick Actions Popover */}
           {isMenuOpen && (
-            <div className="hud-quick-menu">
+            <div className="hud-quick-menu" ref={menuRef}>
               <button
                 className="hud-menu-item"
                 onClick={() => {
@@ -316,19 +333,8 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
 
       {/* Floating Text Input Overlay (Only visible when toggled) */}
       {isTextEntryVisible && (
-        <div className="hud-text-input-container" style={{
-          position: 'absolute',
-          bottom: '100px',
-          width: '90%',
-          maxWidth: '600px',
-          pointerEvents: 'auto'
-        }}>
-          <form className="prompt-form" onSubmit={handleTextSubmit} style={{
-            background: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '24px'
-          }}>
+        <div className="hud-text-input-container">
+          <form className="floating-prompt-form prompt-form" onSubmit={handleTextSubmit}>
             <input
               type="text"
               className="prompt-input"
