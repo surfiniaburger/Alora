@@ -122,7 +122,7 @@ useGSAP(() => {
     // Active breathing glow
     gsap.to(micButtonRef.current, {
       scale: 1.05,
-      boxShadow: '0 0 30px rgba(235, 10, 30, 0.8)...',
+      boxShadow: '0 0 30px rgba(235, 10, 30, 0.8), inset 0 0 25px rgba(235, 10, 30, 0.3)',
       duration: 1.5,
       yoyo: true,
       repeat: -1
