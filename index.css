@@ -533,36 +533,25 @@ gmp-place-details-compact {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   pointer-events: auto;
-  /* Interactive */
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-.hud-mic .material-symbols-outlined {
-  font-size: 40px;
-  transition: all 0.3s ease;
 }
 
 .hud-mic:active {
   transform: scale(0.95);
 }
 
-.hud-mic.mic-active {
-  border-color: var(--gr-red);
-  box-shadow: 0 0 20px rgba(235, 10, 30, 0.6), inset 0 0 20px rgba(235, 10, 30, 0.2);
-  animation: reactor-pulse 2s infinite;
-}
-
-.hud-mic.mic-active .material-symbols-outlined {
-  color: var(--gr-red);
-  text-shadow: 0 0 10px rgba(235, 10, 30, 0.8);
+/* Note: Animation states (idle, connected, active) are handled by GSAP in ControlTray.tsx */
+.hud-mic .material-symbols-outlined {
+  font-size: 36px;
+  transition: all 0.3s ease;
 }
 
 /* Secondary HUD Buttons */
@@ -596,20 +585,6 @@ gmp-place-details-compact {
 
 .hud-button .icon {
   font-size: 24px;
-}
-
-@keyframes reactor-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(235, 10, 30, 0.7), inset 0 0 20px rgba(235, 10, 30, 0.2);
-  }
-
-  70% {
-    box-shadow: 0 0 0 15px rgba(235, 10, 30, 0), inset 0 0 30px rgba(235, 10, 30, 0.4);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgba(235, 10, 30, 0), inset 0 0 20px rgba(235, 10, 30, 0.2);
-  }
 }
 
 .prompt-form {
@@ -1372,10 +1347,67 @@ gmp-place-details-compact {
     padding: 8px 12px;
     font-size: 0.85rem;
   }
+}
 
-  .keyboard-toggle-button {
-    display: flex;
-  }
+/* HUD Text Input Container */
+.hud-text-input-container {
+  position: absolute;
+  bottom: 100px;
+  width: 90%;
+  max-width: 600px;
+  pointer-events: auto;
+}
+
+.floating-prompt-form {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.floating-prompt-form input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 16px;
+  color: white;
+  font-size: 14px;
+}
+
+.floating-prompt-form input:focus {
+  outline: none;
+  border-color: rgba(235, 10, 30, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.floating-prompt-form button {
+  background: var(--gr-red);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.floating-prompt-form button:hover {
+  background: rgba(235, 10, 30, 0.9);
+  transform: translateY(-1px);
+}
+
+.floating-prompt-form button:active {
+  transform: translateY(0);
+}
+
+.keyboard-toggle-button {
+  display: flex;
 }
 
 /* --- Mobile Landscape Responsive Styles --- */
