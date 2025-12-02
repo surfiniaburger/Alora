@@ -698,7 +698,7 @@ const onClose = (event: CloseEvent) => {
 
 - **Branches:** `feature/description`
 - **Commits:** Conventional commits (`feat:`, `fix:`, `chore:`)
--**PRs:** Code review required
+- **PRs:** Code review required
 
 ### Documentation
 
