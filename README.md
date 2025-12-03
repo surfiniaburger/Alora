@@ -437,12 +437,19 @@ Alora isn't just for the track. We've introduced a dedicated **EV Mode** for dai
 - **Context-Aware Filtering**: Filters by connector type (Tesla, CCS, J1772)
 - **Range Feasibility**: Instantly calculates if you have enough range to reach the station
 
-### The EV Toolset (MCP)
+### The EV Toolset (Client-Side)
 
-We expanded the MCP Server with specialized EV tools:
+Unlike the race strategy tools (which run on the MCP Server for heavy computation), the EV tools execute **client-side** in the React frontend:
 - `setEVVehicleProfile`: Stores vehicle specs (battery capacity, efficiency)
-- `findEVChargingStations`: Geospatial search with metadata enrichment
-- `showRouteToStation`: One-shot navigation command
+- `findEVChargingStations`: Geospatial search using Google Maps Grounding API
+- `showRouteToStation`: Route calculation via Google Directions API
+- `calculateChargingTime`: Estimates charging duration based on battery and station type
+- `setUserLocation`: Manual location setting via geocoding
+
+**Why Client-Side?**
+- Direct access to Google Maps APIs (Places, Routes, Geocoding)
+- Real-time UI updates via Zustand stores
+- No heavy computation required (unlike Monte Carlo simulations)
 
 ---
 

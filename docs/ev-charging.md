@@ -83,7 +83,15 @@ interface ChargingStation {
 
 ---
 
-## Tools Registry
+## Tools Registry (Client-Side)
+
+### Architecture Note
+
+The EV tools are implemented as **client-side tools** in the React frontend, unlike the race strategy tools which run on an MCP Server. This architecture choice enables:
+- Direct browser access to Google Maps APIs (Places, Routes, Geocoding)
+- Real-time state updates via Zustand stores
+- Immediate UI feedback without backend round-trips
+- Native geolocation API integration
 
 ### EV Tool Definitions
 
