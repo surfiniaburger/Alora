@@ -225,31 +225,44 @@ SessionSummarizerAgent: "I recommend a 1-stop strategy. Pit on Lap 28."
 
 ### 5. **The Frontend** (React + Google Maps 3D)
 
-An immersive, voice-controlled interface with agent-driven UI.
+An immersive, voice-controlled interface with a futuristic, glassmorphic HUD.
 
 ![Frontend Architecture](./docs/diagrams/frontend-architecture.png)
 
 #### Key Features:
 
-**a. Agent-Driven UI**
-- AI controls camera movements (e.g., "Show me Turn 10" → camera flies to location)
-- Dynamic marker placement based on AI responses
-- Real-time telemetry visualization
+**a. The "Arc Reactor" Control Tray**
+- Central interaction hub inspired by Iron Man's interface
+- **Breathing Mic Button**: Visual feedback for voice activity (Idle, Listening, Processing)
+- **Quick Actions**: One-tap access to Telemetry, Settings, and Debug tools
 
-**b. 3D Map Integration**
+**b. Streaming Console (The "Jarvis" HUD)**
+- Transient message display that fades away when not in use
+- **Agent Messages**: Natural language responses
+- **Rich Tool Outputs**: Interactive cards for EV stations, battery status, and race data
+- **Glassmorphism**: Blurs background to maintain map visibility
+
+**c. Dynamic Mode Switching**
+- **Race Mode**: Telemetry panel, lap deltas, track map
+- **EV Mode**: Battery status, charging station carousel, range circles
+- Seamless transition via `EVModeToggle`
+
+**d. 3D Map Integration**
 - Google Maps 3D Tiles API
 - Custom polylines for race track
 - Car and ghost car markers with rotation
 
-**c. Voice Interface**
+**e. Voice Interface**
 - Gemini Live API for real-time audio streaming
 - Hands-free operation
 - Natural language understanding
 
-**d. State Management**
-- Zustand stores for reactive UI
-- WebSocket streaming for live updates
-- Optimistic UI updates
+**f. Cross-Platform Deployment**
+- **Capacitor**: Wraps React app for native Android deployment
+- **Native Integrations**: Geolocation API (`@capacitor/geolocation`)
+- **WebView**: Full-featured web app runs natively on Android
+- **App ID**: `com.surfiniaburger.alora`
+- **Build**: Single codebase deploys to web (Firebase) and Android (APK)
 
 ---
 
@@ -406,6 +419,33 @@ Serverless, auto-scaling deployment architecture.
 
 ---
 
+---
+
+## 🔌 Use Case: Daily EV Driving
+
+Alora isn't just for the track. We've introduced a dedicated **EV Mode** for daily drivers, transforming range anxiety into intelligent route planning.
+
+### Intelligent Range Management
+
+**Battery Awareness**:
+- Real-time battery monitoring (State of Charge)
+- Dynamic range estimation based on driving style
+- Visual "Battery Status" HUD component
+
+**Smart Charging Station Finder**:
+- **"Find charging stations near me"**: Locates stations using Google Places API
+- **Context-Aware Filtering**: Filters by connector type (Tesla, CCS, J1772)
+- **Range Feasibility**: Instantly calculates if you have enough range to reach the station
+
+### The EV Toolset (MCP)
+
+We expanded the MCP Server with specialized EV tools:
+- `setEVVehicleProfile`: Stores vehicle specs (battery capacity, efficiency)
+- `findEVChargingStations`: Geospatial search with metadata enrichment
+- `showRouteToStation`: One-shot navigation command
+
+---
+
 ## 🏁 Use Case: Toyota GR Cup (Hack the Track)
 
 We tailored Alora's "Track Mode" specifically for the **Toyota GR Cup** racing series.
@@ -471,7 +511,7 @@ We tailored Alora's "Track Mode" specifically for the **Toyota GR Cup** racing s
 | **Data** | Elasticsearch, Docling, Toyota TRD Dataset |
 | **Frontend** | React 19.2, Google Maps 3D Tiles API |
 | **State Management** | Zustand |
-
+| **Mobile** | Capacitor 7.4 (Android/iOS) |
 | **Voice** | Gemini Live API |
 | **Hosting** | Firebase (Frontend), Cloud Run (Backend) |
 
@@ -479,21 +519,21 @@ We tailored Alora's "Track Mode" specifically for the **Toyota GR Cup** racing s
 
 ## 🔮 What's Next
 
-### Phase 1: Data Agents (Q1 2025)
+### Phase 1: Data Agents 
 - **Goal**: Automate data collection, ingestion, and user preference learning
 - **Agents**:
   - **DataCollectorAgent**: Scrapes telemetry from OBD-II devices
   - **IngestionAgent**: Validates and normalizes data for TFX
   - **PreferenceAgent**: Learns driver style (aggressive vs. conservative)
 
-### Phase 2: Android XR (Q2 2025)
+### Phase 2: Android XR 
 - **Goal**: AR/VR-compatible app using Jetpack Compose
 - **Features**:
   - Heads-up display on engineer's helmet visor
   - Spatial audio for directional cues
   - Gesture controls for hands-free operation
 
-### Phase 3: Public Release (Q3 2025)
+### Phase 3: Public Release 
 - **Google Play**: Consumer Android app
 - **Meta Horizon**: VR experience for sim racing
 - **Integration**: Voice-enabled dashboard for race engineers
@@ -505,6 +545,8 @@ We tailored Alora's "Track Mode" specifically for the **Toyota GR Cup** racing s
 - [Architecture Diagrams](./docs/diagrams/)
   - [Memory Service](./docs/diagrams/memory-service.md)
   - [Prompt Evaluation](./docs/diagrams/prompt-evaluation.md)
+- [EV Charging Features](./docs/ev-charging.md)
+- [UI Component System](./docs/ui-components.md)
 - [API Reference](./docs/api/)
 - [Test Recommendations](./TEST_RECOMMENDATIONS.md)
 
