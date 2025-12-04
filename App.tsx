@@ -226,7 +226,6 @@ function AppComponent() {
   // Effect: Revert to Road Atlanta when switching back to Race Mode
   useEffect(() => {
     if (!isEVModeActive && mapController.current) {
-      console.log('[Mode Switch] Reverting to Race Track view');
       mapController.current.flyTo({
         center: INITIAL_VIEW_PROPS.center,
         range: INITIAL_VIEW_PROPS.range,

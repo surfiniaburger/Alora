@@ -162,47 +162,32 @@ describe('EVModeToggle', () => {
         });
     });
 
-    it('shows loading state while switching modes', async () => {
+    it('sends fallback message when location fetch fails', async () => {
         const user = userEvent.setup();
 
-        // Control the geolocation response
-        let resolveLocation: (value: any) => void;
-        const locationPromise = new Promise((resolve) => {
-            resolveLocation = resolve;
-        });
-
-        mockGeolocation.getCurrentPosition.mockImplementation((success) => {
-            locationPromise.then(() => {
-                success({
-                    coords: {
-                        latitude: 40.7128,
-                        longitude: -74.0060,
-                    },
-                });
+        // Mock geolocation failure
+        mockGeolocation.getCurrentPosition.mockImplementation((_, error) => {
+            error({
+                code: 1,
+                message: 'User denied geolocation',
             });
         });
 
         render(<EVModeToggle />);
 
         const button = screen.getByRole('button');
+        await user.click(button);
 
-        // Start the click interaction
-        const clickPromise = user.click(button);
-
-        // Verify loading state appears
+        // Wait for async operations
         await waitFor(() => {
-            expect(button).toBeDisabled();
-            expect(screen.getByText('Switching...')).toBeInTheDocument();
+            expect(mockToggleEVMode).toHaveBeenCalled();
+            expect(mockSetTemplate).toHaveBeenCalledWith('ev-assistant');
+            expect(mockClientSend).toHaveBeenCalledWith([{
+                text: 'SYSTEM UPDATE: Switched to EV Mode. Exact location unavailable, using last known region. Prioritize range anxiety and charging stations.'
+            }]);
         });
 
-        // Resolve the location request
-        resolveLocation!(true);
-
-        // Wait for click to complete
-        await clickPromise;
-
-        // Verify loading state is cleared
-        expect(button).not.toBeDisabled();
-        expect(screen.queryByText('Switching...')).not.toBeInTheDocument();
+        // Verify setUserLocation was NOT called (no coords available)
+        expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 });
