@@ -38,7 +38,7 @@ jobs:
 
     - name: Setup Keystore
       run: |
-        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/release.keystore
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
 
     - name: Build and Sign Release APK
       env:
