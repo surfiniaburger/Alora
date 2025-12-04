@@ -51,8 +51,9 @@ export default function EVModeToggle() {
                 }
 
                 const position = await Geolocation.getCurrentPosition({
-                    enableHighAccuracy: true,
+                    enableHighAccuracy: false,  // Fast: Use WiFi/Cell instead of GPS
                     timeout: 5000,
+                    maximumAge: 300000,          // Accept cached locations up to 5 minutes old
                 });
 
                 return {
@@ -78,16 +79,15 @@ export default function EVModeToggle() {
                         reject(error);
                     },
                     {
-                        enableHighAccuracy: false,
+                        enableHighAccuracy: false,  // Fast: Use WiFi/Cell instead of GPS
                         timeout: 5000,
-                        maximumAge: 60000,
+                        maximumAge: 300000,          // Accept cached locations up to 5 minutes old
                     }
                 );
             });
         } catch (error) {
-            console.warn('[EVModeToggle] Geolocation failed, using fallback:', error);
-            // Fallback to a neutral location (user can manually set via AI)
-            return { lat: 0, lng: 0 };
+            console.warn('[EVModeToggle] Geolocation failed:', error);
+            throw error;  // Re-throw to let caller handle
         }
     };
 
@@ -95,10 +95,12 @@ export default function EVModeToggle() {
         console.log('[EVModeToggle] Toggle clicked, current mode:', isEVModeActive ? 'EV' : 'Race');
 
         setIsLoading(true);
-        toggleEVMode();
 
         try {
-            // Switch template to change tools and system prompt
+            // Optimistically toggle the mode. We'll revert this in the catch block if anything fails.
+            toggleEVMode();
+
+            // The logic below relies on the pre-toggle value of `isEVModeActive` due to closure.
             if (isEVModeActive) {
                 // Switching TO Race Mode
                 console.log('[EVModeToggle] Switching to race-strategy');
@@ -109,29 +111,43 @@ export default function EVModeToggle() {
                 client.send([{ text: message }]);
                 console.log('[EVModeToggle] Sent to AI:', message);
             } else {
-                // Switching TO EV Mode - fetch real-time location
-                console.log('[EVModeToggle] Switching to ev-assistant, fetching location...');
+                // Switching TO EV Mode - Optimistic UI pattern
+                console.log('[EVModeToggle] Switching to ev-assistant (optimistic)');
                 setTemplate('ev-assistant');
 
-                const coords = await fetchCurrentLocation();
-                console.log('[EVModeToggle] Location fetched:', coords);
+                // Non-blocking location fetch with fast config
+                // UI switches immediately, location updates asynchronously
+                fetchCurrentLocation()
+                    .then((coords) => {
+                        console.log('[EVModeToggle] Location fetched:', coords);
 
-                // Update EV store with user location
-                setUserLocation({
-                    lat: coords.lat,
-                    lng: coords.lng,
-                    source: 'gps',
-                    timestamp: Date.now(),
-                    description: 'Current GPS location',
-                });
+                        // Update EV store with user location
+                        setUserLocation({
+                            lat: coords.lat,
+                            lng: coords.lng,
+                            source: 'gps',
+                            timestamp: Date.now(),
+                            description: 'Current GPS location',
+                        });
 
-                // Send dynamic system message to AI with actual coordinates
-                const message = `SYSTEM UPDATE: Switch to EV Mode. Current User Coordinates: ${coords.lat}, ${coords.lng}. Re-center context to this location. Prioritize range anxiety and charging stations.`;
-                client.send([{ text: message }]);
-                console.log('[EVModeToggle] Sent to AI:', message);
+                        // Send update to AI with real coordinates
+                        const message = `SYSTEM UPDATE: Switch to EV Mode. Current User Coordinates: ${coords.lat}, ${coords.lng}. Re-center context to this location. Prioritize range anxiety and charging stations.`;
+                        client.send([{ text: message }]);
+                        console.log('[EVModeToggle] Sent to AI (with location):', message);
+                    })
+                    .catch((error) => {
+                        console.warn('[EVModeToggle] Location fetch failed, using fallback:', error);
+
+                        // Send fallback message to AI without exact coordinates
+                        const fallbackMessage = `SYSTEM UPDATE: Switched to EV Mode. Exact location unavailable, using last known region. Prioritize range anxiety and charging stations.`;
+                        client.send([{ text: fallbackMessage }]);
+                        console.log('[EVModeToggle] Sent to AI (fallback):', fallbackMessage);
+                    });
             }
         } catch (error) {
-            console.error('[EVModeToggle] Error during mode switch:', error);
+            console.error('[EVModeToggle] Error during mode switch, reverting state:', error);
+            // Revert the optimistic UI update on failure to maintain a consistent state.
+            toggleEVMode();
         } finally {
             setIsLoading(false);
         }
