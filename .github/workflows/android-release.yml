@@ -47,8 +47,8 @@ jobs:
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
         cd android
-        # Create gradle.properties with signing config
-        cat > gradle.properties << EOF
+        # Append signing config to gradle.properties
+        cat >> gradle.properties << EOF
         MYAPP_RELEASE_STORE_FILE=release.keystore
         MYAPP_RELEASE_KEY_ALIAS=$KEY_ALIAS
         MYAPP_RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD
