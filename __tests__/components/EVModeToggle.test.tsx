@@ -53,11 +53,20 @@ describe('EVModeToggle', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        (useEVModeStore as any).mockReturnValue({
+        // Mock the store with getState() method for race condition checks
+        const mockStoreState = {
             isEVModeActive: false,
             toggleEVMode: mockToggleEVMode,
             setUserLocation: mockSetUserLocation,
+        };
+
+        // Make toggleEVMode actually update the mock state
+        mockToggleEVMode.mockImplementation(() => {
+            mockStoreState.isEVModeActive = !mockStoreState.isEVModeActive;
         });
+
+        (useEVModeStore as any).mockReturnValue(mockStoreState);
+        (useEVModeStore as any).getState = vi.fn(() => mockStoreState);
 
         (useTools as any).mockReturnValue({
             setTemplate: mockSetTemplate,

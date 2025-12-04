@@ -119,6 +119,9 @@ export default function EVModeToggle() {
                 // UI switches immediately, location updates asynchronously
                 fetchCurrentLocation()
                     .then((coords) => {
+                        // Prevent race condition: only update if still in EV mode
+                        if (!useEVModeStore.getState().isEVModeActive) return;
+
                         console.log('[EVModeToggle] Location fetched:', coords);
 
                         // Update EV store with user location
@@ -136,6 +139,9 @@ export default function EVModeToggle() {
                         console.log('[EVModeToggle] Sent to AI (with location):', message);
                     })
                     .catch((error) => {
+                        // Prevent race condition: only update if still in EV mode
+                        if (!useEVModeStore.getState().isEVModeActive) return;
+
                         console.warn('[EVModeToggle] Location fetch failed, using fallback:', error);
 
                         // Send fallback message to AI without exact coordinates
