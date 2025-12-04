@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event';
 import EVModeToggle from '../../components/EVModeToggle';
 import { useEVModeStore } from '../../lib/ev-mode-state';
 import { useTools } from '../../lib/state';
+import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 
 // Mock dependencies
 vi.mock('../../lib/ev-mode-state', () => ({
@@ -19,9 +20,14 @@ vi.mock('../../lib/state', () => ({
     useTools: vi.fn(),
 }));
 
+vi.mock('../../contexts/LiveAPIContext', () => ({
+    useLiveAPIContext: vi.fn(),
+}));
+
 describe('EVModeToggle', () => {
     const mockToggleEVMode = vi.fn();
     const mockSetTemplate = vi.fn();
+    const mockClientSend = vi.fn();
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -33,6 +39,10 @@ describe('EVModeToggle', () => {
 
         (useTools as any).mockReturnValue({
             setTemplate: mockSetTemplate,
+        });
+
+        (useLiveAPIContext as any).mockReturnValue({
+            client: { send: mockClientSend },
         });
     });
 
@@ -65,19 +75,8 @@ describe('EVModeToggle', () => {
         expect(button).toHaveAttribute('aria-label', 'Switch to Race Mode');
     });
 
-    it('toggles mode and switches template on click (Race -> EV)', async () => {
+    it('toggles mode, switches template, and sends AI message (Race -> EV)', async () => {
         const user = userEvent.setup();
-
-        // Initial state: Race Mode (isEVModeActive: false)
-        // When clicked, it calls toggleEVMode() and then checks isEVModeActive
-        // Note: In the component, it checks the *current* value from the hook, 
-        // which won't update immediately in this test setup unless we simulate the store update.
-        // However, the component logic uses the value *captured in render* for the if/else check inside handleToggle?
-        // Actually, looking at the code:
-        // const { isEVModeActive, toggleEVMode } = useEVModeStore();
-        // ...
-        // if (isEVModeActive) { ... } else { ... }
-        // So if isEVModeActive is false (Race Mode), it will go to the else block -> setTemplate('ev-assistant')
 
         render(<EVModeToggle />);
 
@@ -86,9 +85,12 @@ describe('EVModeToggle', () => {
 
         expect(mockToggleEVMode).toHaveBeenCalled();
         expect(mockSetTemplate).toHaveBeenCalledWith('ev-assistant');
+        expect(mockClientSend).toHaveBeenCalledWith([{
+            text: expect.stringContaining("Switch persona to 'EV Assistant'")
+        }]);
     });
 
-    it('toggles mode and switches template on click (EV -> Race)', async () => {
+    it('toggles mode, switches template, and sends AI message (EV -> Race)', async () => {
         const user = userEvent.setup();
 
         (useEVModeStore as any).mockReturnValue({
@@ -103,5 +105,8 @@ describe('EVModeToggle', () => {
 
         expect(mockToggleEVMode).toHaveBeenCalled();
         expect(mockSetTemplate).toHaveBeenCalledWith('race-strategy');
+        expect(mockClientSend).toHaveBeenCalledWith([{
+            text: expect.stringContaining("Switch persona to 'Chief Strategist'")
+        }]);
     });
 });

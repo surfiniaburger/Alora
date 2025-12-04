@@ -18,9 +18,12 @@ import { useEVModeStore } from '@/lib/ev-mode-state';
 import { useTools } from '@/lib/state';
 import './EVModeToggle.css';
 
+import { useLiveAPIContext } from '../contexts/LiveAPIContext';
+
 export default function EVModeToggle() {
     const { isEVModeActive, toggleEVMode } = useEVModeStore();
     const { setTemplate } = useTools();
+    const { client } = useLiveAPIContext();
 
     const handleToggle = () => {
         console.log('[EVModeToggle] Toggle clicked, current mode:', isEVModeActive ? 'EV' : 'Race');
@@ -30,9 +33,13 @@ export default function EVModeToggle() {
         if (isEVModeActive) {
             console.log('[EVModeToggle] Switching to race-strategy');
             setTemplate('race-strategy');
+            // Send system message to switch AI persona
+            client.send([{ text: "System Alert: Driver is on track. Switch persona to 'Chief Strategist'. Prioritize lap times and tire degradation." }]);
         } else {
             console.log('[EVModeToggle] Switching to ev-assistant');
             setTemplate('ev-assistant');
+            // Send system message to switch AI persona
+            client.send([{ text: "System Alert: Driver has left the track. Switch persona to 'EV Assistant'. Prioritize range anxiety and charging stations." }]);
         }
     };
 
