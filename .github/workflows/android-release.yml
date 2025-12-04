@@ -36,27 +36,40 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
 
-    - name: Build Release APK
+    - name: Setup Keystore
+      run: |
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/release.keystore
+
+    - name: Build and Sign Release APK
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
         cd android
+        # Create gradle.properties with signing config
+        cat > gradle.properties << EOF
+        MYAPP_RELEASE_STORE_FILE=release.keystore
+        MYAPP_RELEASE_KEY_ALIAS=$KEY_ALIAS
+        MYAPP_RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD
+        MYAPP_RELEASE_KEY_PASSWORD=$KEY_PASSWORD
+        EOF
         ./gradlew assembleRelease
-
-    - name: Sign APK
-      id: sign_app
-      uses: r0adkll/sign-android-release@v1
-      with:
-        releaseDirectory: android/app/build/outputs/apk/release
-        signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
-        alias: ${{ secrets.KEY_ALIAS }}
-        keyStorePassword: ${{ secrets.KEY_PASSWORD }}
-        keyPassword: ${{ secrets.STORE_PASSWORD }}
-      
+    
     - name: Upload APK to Release
+      if: github.event_name == 'release'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+        asset_path: android/app/build/outputs/apk/release/app-release.apk
         asset_name: alora-release.apk
         asset_content_type: application/vnd.android.package-archive
+
+    - name: Upload APK as Artifact
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/upload-artifact@v4
+      with:
+        name: alora-release-apk
+        path: android/app/build/outputs/apk/release/app-release.apk
