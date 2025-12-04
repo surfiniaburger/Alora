@@ -4,11 +4,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EVModeToggle from '../../components/EVModeToggle';
 import { useEVModeStore } from '../../lib/ev-mode-state';
 import { useTools } from '../../lib/state';
+import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 
 // Mock dependencies
 vi.mock('../../lib/ev-mode-state', () => ({
@@ -19,9 +20,35 @@ vi.mock('../../lib/state', () => ({
     useTools: vi.fn(),
 }));
 
+vi.mock('../../contexts/LiveAPIContext', () => ({
+    useLiveAPIContext: vi.fn(),
+}));
+
+// Mock Capacitor
+vi.mock('@capacitor/core', () => ({
+    Capacitor: {
+        isNativePlatform: () => false,
+    },
+}));
+
+vi.mock('@capacitor/geolocation', () => ({
+    Geolocation: {
+        checkPermissions: vi.fn(),
+        requestPermissions: vi.fn(),
+        getCurrentPosition: vi.fn(),
+    },
+}));
+
 describe('EVModeToggle', () => {
     const mockToggleEVMode = vi.fn();
     const mockSetTemplate = vi.fn();
+    const mockClientSend = vi.fn();
+    const mockSetUserLocation = vi.fn();
+
+    // Mock geolocation
+    const mockGeolocation = {
+        getCurrentPosition: vi.fn(),
+    };
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -29,10 +56,31 @@ describe('EVModeToggle', () => {
         (useEVModeStore as any).mockReturnValue({
             isEVModeActive: false,
             toggleEVMode: mockToggleEVMode,
+            setUserLocation: mockSetUserLocation,
         });
 
         (useTools as any).mockReturnValue({
             setTemplate: mockSetTemplate,
+        });
+
+        (useLiveAPIContext as any).mockReturnValue({
+            client: { send: mockClientSend },
+        });
+
+        // Mock navigator.geolocation for web
+        Object.defineProperty(global.navigator, 'geolocation', {
+            value: mockGeolocation,
+            configurable: true,
+        });
+
+        // Default successful geolocation response
+        mockGeolocation.getCurrentPosition.mockImplementation((success) => {
+            success({
+                coords: {
+                    latitude: 40.7128,
+                    longitude: -74.0060,
+                },
+            });
         });
     });
 
@@ -52,6 +100,7 @@ describe('EVModeToggle', () => {
         (useEVModeStore as any).mockReturnValue({
             isEVModeActive: true,
             toggleEVMode: mockToggleEVMode,
+            setUserLocation: mockSetUserLocation,
         });
 
         render(<EVModeToggle />);
@@ -65,35 +114,38 @@ describe('EVModeToggle', () => {
         expect(button).toHaveAttribute('aria-label', 'Switch to Race Mode');
     });
 
-    it('toggles mode and switches template on click (Race -> EV)', async () => {
+    it('fetches location and sends dynamic coordinates when switching to EV Mode', async () => {
         const user = userEvent.setup();
-
-        // Initial state: Race Mode (isEVModeActive: false)
-        // When clicked, it calls toggleEVMode() and then checks isEVModeActive
-        // Note: In the component, it checks the *current* value from the hook, 
-        // which won't update immediately in this test setup unless we simulate the store update.
-        // However, the component logic uses the value *captured in render* for the if/else check inside handleToggle?
-        // Actually, looking at the code:
-        // const { isEVModeActive, toggleEVMode } = useEVModeStore();
-        // ...
-        // if (isEVModeActive) { ... } else { ... }
-        // So if isEVModeActive is false (Race Mode), it will go to the else block -> setTemplate('ev-assistant')
 
         render(<EVModeToggle />);
 
         const button = screen.getByRole('button');
         await user.click(button);
 
-        expect(mockToggleEVMode).toHaveBeenCalled();
-        expect(mockSetTemplate).toHaveBeenCalledWith('ev-assistant');
+        // Wait for async operations
+        await waitFor(() => {
+            expect(mockToggleEVMode).toHaveBeenCalled();
+            expect(mockSetTemplate).toHaveBeenCalledWith('ev-assistant');
+            expect(mockSetUserLocation).toHaveBeenCalledWith({
+                lat: 40.7128,
+                lng: -74.0060,
+                source: 'gps',
+                timestamp: expect.any(Number),
+                description: 'Current GPS location',
+            });
+            expect(mockClientSend).toHaveBeenCalledWith([{
+                text: expect.stringContaining('SYSTEM UPDATE: Switch to EV Mode. Current User Coordinates: 40.7128, -74.006')
+            }]);
+        });
     });
 
-    it('toggles mode and switches template on click (EV -> Race)', async () => {
+    it('sends Road Atlanta coordinates when switching to Race Mode', async () => {
         const user = userEvent.setup();
 
         (useEVModeStore as any).mockReturnValue({
             isEVModeActive: true,
             toggleEVMode: mockToggleEVMode,
+            setUserLocation: mockSetUserLocation,
         });
 
         render(<EVModeToggle />);
@@ -101,7 +153,56 @@ describe('EVModeToggle', () => {
         const button = screen.getByRole('button');
         await user.click(button);
 
-        expect(mockToggleEVMode).toHaveBeenCalled();
-        expect(mockSetTemplate).toHaveBeenCalledWith('race-strategy');
+        await waitFor(() => {
+            expect(mockToggleEVMode).toHaveBeenCalled();
+            expect(mockSetTemplate).toHaveBeenCalledWith('race-strategy');
+            expect(mockClientSend).toHaveBeenCalledWith([{
+                text: expect.stringContaining('Road Atlanta Track (34.1458, -83.8177)')
+            }]);
+        });
+    });
+
+    it('shows loading state while switching modes', async () => {
+        const user = userEvent.setup();
+
+        // Control the geolocation response
+        let resolveLocation: (value: any) => void;
+        const locationPromise = new Promise((resolve) => {
+            resolveLocation = resolve;
+        });
+
+        mockGeolocation.getCurrentPosition.mockImplementation((success) => {
+            locationPromise.then(() => {
+                success({
+                    coords: {
+                        latitude: 40.7128,
+                        longitude: -74.0060,
+                    },
+                });
+            });
+        });
+
+        render(<EVModeToggle />);
+
+        const button = screen.getByRole('button');
+
+        // Start the click interaction
+        const clickPromise = user.click(button);
+
+        // Verify loading state appears
+        await waitFor(() => {
+            expect(button).toBeDisabled();
+            expect(screen.getByText('Switching...')).toBeInTheDocument();
+        });
+
+        // Resolve the location request
+        resolveLocation!(true);
+
+        // Wait for click to complete
+        await clickPromise;
+
+        // Verify loading state is cleared
+        expect(button).not.toBeDisabled();
+        expect(screen.queryByText('Switching...')).not.toBeInTheDocument();
     });
 });

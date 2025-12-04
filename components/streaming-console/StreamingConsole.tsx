@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -165,13 +166,22 @@ export default function StreamingConsole() {
     setConfig(config);
   }, [setConfig, systemPrompt, tools, voice]);
 
-  // Handle Transcriptions (Keep existing logic)
-  useEffect(() => {
-    const { addTurn, updateLastTurn, mergeIntoLastAgentTurn } = useLogStore.getState();
+  // Handle Transcriptions
+  const addTurn = useLogStore(state => state.addTurn);
+  const updateLastTurn = useLogStore(state => state.updateLastTurn);
+  const mergeIntoLastAgentTurn = useLogStore(state => state.mergeIntoLastAgentTurn);
+  // We need access to the current turns state inside the event handlers without triggering re-renders on every change.
+  // Using a ref to track the current turns allows us to access the latest state inside the callbacks.
+  const turnsRef = useRef(turns);
 
+  useEffect(() => {
+    turnsRef.current = turns;
+  }, [turns]);
+
+  useEffect(() => {
     const handleInputTranscription = (text: string, isFinal: boolean) => {
-      const turns = useLogStore.getState().turns;
-      const last = turns[turns.length - 1];
+      const currentTurns = turnsRef.current;
+      const last = currentTurns[currentTurns.length - 1];
       if (last && last.role === 'user' && !last.isFinal) {
         updateLastTurn({ text: last.text + text, isFinal });
       } else {
@@ -180,16 +190,16 @@ export default function StreamingConsole() {
     };
 
     const handleOutputTranscription = (text: string, isFinal: boolean) => {
-      const { turns, updateLastTurn, addTurn, mergeIntoLastAgentTurn } = useLogStore.getState();
-      const last = turns[turns.length - 1];
+      const currentTurns = turnsRef.current;
+      const last = currentTurns[currentTurns.length - 1];
 
       if (last && last.role === 'agent' && !last.isFinal) {
         updateLastTurn({ text: last.text + text, isFinal });
       } else {
-        const lastAgentTurnIndex = turns.map(t => t.role).lastIndexOf('agent');
+        const lastAgentTurnIndex = currentTurns.map(t => t.role).lastIndexOf('agent');
         let shouldMerge = false;
         if (lastAgentTurnIndex !== -1) {
-          const subsequentTurns = turns.slice(lastAgentTurnIndex + 1);
+          const subsequentTurns = currentTurns.slice(lastAgentTurnIndex + 1);
           if (subsequentTurns.length > 0 && subsequentTurns.every(t => t.role === 'system')) {
             shouldMerge = true;
           }
@@ -214,13 +224,13 @@ export default function StreamingConsole() {
     };
 
     const handleContent = (serverContent: LiveServerContent) => {
-      const { turns, updateLastTurn, addTurn, mergeIntoLastAgentTurn } = useLogStore.getState();
+      const currentTurns = turnsRef.current;
       const text = serverContent.modelTurn?.parts?.map((p: any) => p.text).filter(Boolean).join('') ?? '';
       const groundingChunks = serverContent.groundingMetadata?.groundingChunks;
 
       if (!text && !groundingChunks) return;
 
-      const last = turns[turns.length - 1];
+      const last = currentTurns[currentTurns.length - 1];
 
       if (last?.role === 'agent' && !last.isFinal) {
         const updatedTurn: Partial<ConversationTurn> = { text: last.text + text };
@@ -229,10 +239,10 @@ export default function StreamingConsole() {
         }
         updateLastTurn(updatedTurn);
       } else {
-        const lastAgentTurnIndex = turns.map(t => t.role).lastIndexOf('agent');
+        const lastAgentTurnIndex = currentTurns.map(t => t.role).lastIndexOf('agent');
         let shouldMerge = false;
         if (lastAgentTurnIndex !== -1) {
-          const subsequentTurns = turns.slice(lastAgentTurnIndex + 1);
+          const subsequentTurns = currentTurns.slice(lastAgentTurnIndex + 1);
           if (subsequentTurns.length > 0 && subsequentTurns.every(t => t.role === 'system')) {
             shouldMerge = true;
           }
@@ -261,8 +271,8 @@ export default function StreamingConsole() {
     };
 
     const handleTurnComplete = () => {
-      const turns = useLogStore.getState().turns;
-      const last = turns[turns.length - 1];
+      const currentTurns = turnsRef.current;
+      const last = currentTurns[currentTurns.length - 1];
       if (last && !last.isFinal) {
         updateLastTurn({ isFinal: true });
       }
@@ -281,7 +291,7 @@ export default function StreamingConsole() {
       client.off('turncomplete', handleTurnComplete);
       client.off('generationcomplete', handleTurnComplete);
     };
-  }, [client, heldGroundingChunks, clearHeldGroundingChunks, heldGroundedResponse, clearHeldGroundedResponse]);
+  }, [client, heldGroundingChunks, clearHeldGroundingChunks, heldGroundedResponse, clearHeldGroundedResponse, addTurn, updateLastTurn, mergeIntoLastAgentTurn]);
 
 
   // Render Helper
