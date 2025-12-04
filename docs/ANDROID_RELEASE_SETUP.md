@@ -19,11 +19,19 @@ Follow the prompts to set passwords and certificate details.
 
 GitHub Secrets cannot store binary files directly, so we encode the keystore file to a Base64 string.
 
-**Mac/Linux:**
+**macOS:**
 ```bash
 base64 -i my-release-key.keystore | pbcopy
 # Or just print it to copy manually:
 base64 -i my-release-key.keystore
+```
+
+**Linux:**
+```bash
+# Use -w 0 to disable line wrapping
+base64 -w 0 my-release-key.keystore
+# Or copy to clipboard with xclip:
+base64 -w 0 my-release-key.keystore | xclip -selection clipboard
 ```
 
 **Windows (PowerShell):**

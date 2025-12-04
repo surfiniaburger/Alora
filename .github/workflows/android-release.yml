@@ -49,10 +49,10 @@ jobs:
         cd android
         # Append signing config to gradle.properties
         cat >> gradle.properties << EOF
-        MYAPP_RELEASE_STORE_FILE=release.keystore
-        MYAPP_RELEASE_KEY_ALIAS=$KEY_ALIAS
-        MYAPP_RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD
-        MYAPP_RELEASE_KEY_PASSWORD=$KEY_PASSWORD
+        ALORA_RELEASE_STORE_FILE=release.keystore
+        ALORA_RELEASE_KEY_ALIAS=$KEY_ALIAS
+        ALORA_RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD
+        ALORA_RELEASE_KEY_PASSWORD=$KEY_PASSWORD
         EOF
         ./gradlew assembleRelease
     
