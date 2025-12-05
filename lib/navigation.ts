@@ -6,7 +6,7 @@ import { EVChargingStation } from '@/lib/ev-mode-state';
  * Opens Google Maps (native or web) and sends an AI announcement.
  */
 export function navigateToStation(
-    station: EVChargingStation,
+    station: EVChargingStation | null | undefined,
     client?: any,
     connected?: boolean
 ) {
