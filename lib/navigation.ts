@@ -7,7 +7,7 @@ import { EVChargingStation } from '@/lib/ev-mode-state';
  */
 export function navigateToStation(
     station: EVChargingStation | null | undefined,
-    client?: any,
+    client?: { send: (messages: { text: string }[]) => void },
     connected?: boolean
 ) {
     if (!station) return;
