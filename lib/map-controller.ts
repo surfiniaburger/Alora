@@ -91,8 +91,9 @@ export class MapController {
 
     this.trackPolyline = new this.maps3dLib.Polyline3DElement({
       coordinates: path,
-      strokeColor: 'rgba(235, 10, 30, 0.8)', // GR Red with opacity
-      strokeWidth: 4,
+      strokeColor: '#FF0000', // High contrast Red for Race Mode
+      strokeWidth: 8,
+      // @ts-ignore
       altitudeMode: 'RELATIVE_TO_MESH'
     });
     this.map.appendChild(this.trackPolyline);
@@ -109,8 +110,9 @@ export class MapController {
 
     this.routePolyline = new this.maps3dLib.Polyline3DElement({
       coordinates: path,
-      strokeColor: 'rgba(0, 208, 132, 0.8)', // EV Green
-      strokeWidth: 6,
+      strokeColor: '#00FFFF', // Cyan/Electric Blue for EV Mode
+      strokeWidth: 8,
+      // @ts-ignore
       altitudeMode: 'RELATIVE_TO_MESH'
     });
     this.map.appendChild(this.routePolyline);

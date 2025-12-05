@@ -24,7 +24,9 @@ import cn from 'classnames';
 import React, { memo, useEffect, useRef, useState, FormEvent, Ref } from 'react';
 import { AudioRecorder } from '../lib/audio-recorder';
 import { useLogStore, useUI, useSettings, useTelemetryStore } from '@/lib/state';
+import { useEVModeStore } from '@/lib/ev-mode-state';
 import { useLiveAPIContext } from '../contexts/LiveAPIContext';
+import { Capacitor } from '@capacitor/core';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
@@ -60,6 +62,7 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
   const micButtonRef = useRef<HTMLButtonElement>(null);
   const { toggleSidebar, toggleTelemetryPanel, isTelemetryPanelOpen } = useUI();
   const { activateEasterEggMode } = useSettings();
+  const { selectedStation, isEVModeActive } = useEVModeStore();
   const settingsClickTimestamps = useRef<number[]>([]);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isTextEntryVisible, setIsTextEntryVisible] = useState(false);
@@ -248,6 +251,34 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
     client.sendRealtimeText(promptWithContext);
   };
 
+  const handleNavigate = () => {
+    if (!selectedStation) return;
+
+    console.log('[ControlTray] Navigating to:', selectedStation.name);
+
+    // Deep link to Google Maps for turn-by-turn navigation
+    const { lat, lng } = selectedStation.position;
+
+    if (Capacitor.isNativePlatform()) {
+      // Native platform: Use Google Maps app via deep link
+      const navigationUrl = `google.navigation:q=${lat},${lng}&mode=d`;
+      window.open(navigationUrl, '_system');
+    } else {
+      // Web platform: Use Google Maps web URL
+      const webNavigationUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+      window.open(webNavigationUrl, '_blank');
+    }
+
+    // Send AI announcement
+    if (client && connected) {
+      const aiMessage = `SYSTEM ALERT: User has started navigation to ${selectedStation.name}. End conversation to allow for driving focus, or offer to play music.`;
+      client.send([{ text: aiMessage }]);
+      console.log('[ControlTray] AI announcement sent:', aiMessage);
+    }
+
+    setIsMenuOpen(false);
+  };
+
   const handleSettingsClick = () => {
     toggleSidebar();
     // Easter egg logic preserved but hidden for now
@@ -304,6 +335,17 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
                 </span>
                 <span>{isTelemetryPanelOpen ? 'Hide Telemetry' : 'Show Telemetry'}</span>
               </button>
+
+              {/* Navigate option - only show in EV Mode with selected station */}
+              {isEVModeActive && selectedStation && (
+                <button
+                  className="hud-menu-item primary"
+                  onClick={handleNavigate}
+                >
+                  <span className="icon material-symbols-outlined">navigation</span>
+                  <span>Navigate to {selectedStation.name}</span>
+                </button>
+              )}
 
               <button
                 className="hud-menu-item"

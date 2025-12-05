@@ -13,10 +13,13 @@
 
 import React from 'react';
 import { useEVModeStore, EVChargingStation } from '@/lib/ev-mode-state';
+import { useLiveAPIContext } from '@/contexts/LiveAPIContext';
+import { Capacitor } from '@capacitor/core';
 import './EVStationPanel.css';
 
 export default function EVStationPanel() {
     const { nearbyStations, selectedStation, selectStation, vehicleProfile } = useEVModeStore();
+    const { client, connected } = useLiveAPIContext();
 
     if (nearbyStations.length === 0) {
         return null; // Don't show panel if no stations found
@@ -24,6 +27,31 @@ export default function EVStationPanel() {
 
     const handleStationClick = (station: EVChargingStation) => {
         selectStation(selectedStation?.placeId === station.placeId ? null : station);
+    };
+
+    const handleNavigate = (station: EVChargingStation, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent card selection
+        console.log('[EVStationPanel] Navigating to:', station.name);
+
+        // Deep link to Google Maps for turn-by-turn navigation
+        const { lat, lng } = station.position;
+
+        if (Capacitor.isNativePlatform()) {
+            // Native platform: Use Google Maps app via deep link
+            const navigationUrl = `google.navigation:q=${lat},${lng}&mode=d`;
+            window.open(navigationUrl, '_system');
+        } else {
+            // Web platform: Use Google Maps web URL
+            const webNavigationUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+            window.open(webNavigationUrl, '_blank');
+        }
+
+        // Send AI announcement
+        if (client && connected) {
+            const aiMessage = `SYSTEM ALERT: User has started navigation to ${station.name}. End conversation to allow for driving focus, or offer to play music.`;
+            client.send([{ text: aiMessage }]);
+            console.log('[EVStationPanel] AI announcement sent:', aiMessage);
+        }
     };
 
     // Calculate battery usage for each station
@@ -125,7 +153,10 @@ export default function EVStationPanel() {
 
                             {isSelected && (
                                 <div className="station-actions">
-                                    <button className="action-button primary">
+                                    <button
+                                        className="action-button primary"
+                                        onClick={(e) => handleNavigate(station, e)}
+                                    >
                                         Navigate
                                     </button>
                                     <button className="action-button secondary">
