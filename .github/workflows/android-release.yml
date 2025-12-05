@@ -60,14 +60,11 @@ jobs:
     
     - name: Upload APK to Release
       if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1
+      with:
+        files: android/app/build/outputs/apk/release/app-release.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: android/app/build/outputs/apk/release/app-release.apk
-        asset_name: alora-release.apk
-        asset_content_type: application/vnd.android.package-archive
 
     - name: Upload APK as Artifact
       if: github.event_name == 'workflow_dispatch'
