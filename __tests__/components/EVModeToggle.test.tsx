@@ -44,6 +44,7 @@ describe('EVModeToggle', () => {
     const mockSetTemplate = vi.fn();
     const mockClientSend = vi.fn();
     const mockSetUserLocation = vi.fn();
+    let mockStoreState: any; // Shared state for all tests
 
     // Mock geolocation
     const mockGeolocation = {
@@ -53,8 +54,8 @@ describe('EVModeToggle', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        // Mock the store with getState() method for race condition checks
-        const mockStoreState = {
+        // Initialize the store state for each test
+        mockStoreState = {
             isEVModeActive: false,
             toggleEVMode: mockToggleEVMode,
             setUserLocation: mockSetUserLocation,
@@ -106,11 +107,8 @@ describe('EVModeToggle', () => {
     });
 
     it('renders in EV Mode when active', () => {
-        (useEVModeStore as any).mockReturnValue({
-            isEVModeActive: true,
-            toggleEVMode: mockToggleEVMode,
-            setUserLocation: mockSetUserLocation,
-        });
+        // Directly modify the shared state
+        mockStoreState.isEVModeActive = true;
 
         render(<EVModeToggle />);
 
@@ -151,11 +149,8 @@ describe('EVModeToggle', () => {
     it('sends Road Atlanta coordinates when switching to Race Mode', async () => {
         const user = userEvent.setup();
 
-        (useEVModeStore as any).mockReturnValue({
-            isEVModeActive: true,
-            toggleEVMode: mockToggleEVMode,
-            setUserLocation: mockSetUserLocation,
-        });
+        // Directly modify the shared state
+        mockStoreState.isEVModeActive = true;
 
         render(<EVModeToggle />);
 
