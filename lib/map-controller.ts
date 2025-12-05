@@ -24,6 +24,12 @@ import { lookAtWithPadding } from './look-at';
 import { MapMarker } from './state';
 import { useEVModeStore } from '@/lib/ev-mode-state';
 
+// Map Styling Constants
+const RACE_MODE_POLYLINE_COLOR = '#FF0000'; // High contrast Red
+const EV_MODE_POLYLINE_COLOR = '#00FFFF';   // Cyan/Electric Blue
+const ROUTE_POLYLINE_WIDTH = 8;
+
+
 type MapControllerDependencies = {
   map: google.maps.maps3d.Map3DElement;
   maps3dLib: google.maps.Maps3DLibrary;
@@ -91,9 +97,9 @@ export class MapController {
 
     this.trackPolyline = new this.maps3dLib.Polyline3DElement({
       coordinates: path,
-      strokeColor: '#FF0000', // High contrast Red for Race Mode
-      strokeWidth: 8,
-      // @ts-ignore
+      strokeColor: RACE_MODE_POLYLINE_COLOR,
+      strokeWidth: ROUTE_POLYLINE_WIDTH,
+      // @ts-ignore: altitudeMode is valid but missing from Polyline3DOptions type definition
       altitudeMode: 'RELATIVE_TO_MESH'
     });
     this.map.appendChild(this.trackPolyline);
@@ -110,9 +116,9 @@ export class MapController {
 
     this.routePolyline = new this.maps3dLib.Polyline3DElement({
       coordinates: path,
-      strokeColor: '#00FFFF', // Cyan/Electric Blue for EV Mode
-      strokeWidth: 8,
-      // @ts-ignore
+      strokeColor: EV_MODE_POLYLINE_COLOR,
+      strokeWidth: ROUTE_POLYLINE_WIDTH,
+      // @ts-ignore: altitudeMode is valid but missing from Polyline3DOptions type definition
       altitudeMode: 'RELATIVE_TO_MESH'
     });
     this.map.appendChild(this.routePolyline);

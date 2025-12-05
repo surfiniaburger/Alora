@@ -29,6 +29,7 @@ import { useLiveAPIContext } from '../contexts/LiveAPIContext';
 import { Capacitor } from '@capacitor/core';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { navigateToStation } from '@/lib/navigation';
 
 // Hook to detect screen size for responsive component rendering
 const useMediaQuery = (query: string) => {
@@ -254,27 +255,8 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
   const handleNavigate = () => {
     if (!selectedStation) return;
 
-    console.log('[ControlTray] Navigating to:', selectedStation.name);
-
-    // Deep link to Google Maps for turn-by-turn navigation
-    const { lat, lng } = selectedStation.position;
-
-    if (Capacitor.isNativePlatform()) {
-      // Native platform: Use Google Maps app via deep link
-      const navigationUrl = `google.navigation:q=${lat},${lng}&mode=d`;
-      window.open(navigationUrl, '_system');
-    } else {
-      // Web platform: Use Google Maps web URL
-      const webNavigationUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
-      window.open(webNavigationUrl, '_blank');
-    }
-
-    // Send AI announcement
-    if (client && connected) {
-      const aiMessage = `SYSTEM ALERT: User has started navigation to ${selectedStation.name}. End conversation to allow for driving focus, or offer to play music.`;
-      client.send([{ text: aiMessage }]);
-      console.log('[ControlTray] AI announcement sent:', aiMessage);
-    }
+    // Use shared navigation utility
+    navigateToStation(selectedStation, client, connected);
 
     setIsMenuOpen(false);
   };
