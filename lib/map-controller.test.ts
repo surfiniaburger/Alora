@@ -154,8 +154,8 @@ describe('MapController', () => {
 
             expect(createdPolylines).toHaveLength(1);
             expect(createdPolylines[0].coordinates).toEqual(trackPath);
-            expect(createdPolylines[0].strokeColor).toBe('rgba(235, 10, 30, 0.8)');
-            expect(createdPolylines[0].strokeWidth).toBe(4);
+            expect(createdPolylines[0].strokeColor).toBe('#FF0000'); // Updated to High Contrast Red
+            expect(createdPolylines[0].strokeWidth).toBe(8); // Updated to 8
         });
 
         it('should update existing polyline coordinates', () => {
@@ -179,6 +179,46 @@ describe('MapController', () => {
             // Should not create a new polyline, just update coordinates
             expect(finalCount).toBe(initialCount);
             expect(createdPolylines[0].coordinates).toEqual(updatedPath);
+        });
+    });
+
+    describe('drawRoute', () => {
+        it('should create a polyline for the route', () => {
+            const routePath = [
+                { lat: 34.1458, lng: -83.8177, altitude: 0 },
+                { lat: 34.1460, lng: -83.8180, altitude: 0 },
+            ];
+
+            mapController.drawRoute(routePath);
+
+            expect(createdPolylines).toHaveLength(1);
+            expect(createdPolylines[0].coordinates).toEqual(routePath);
+            expect(createdPolylines[0].strokeColor).toBe('#00FFFF'); // Cyan for EV Mode
+            expect(createdPolylines[0].strokeWidth).toBe(8);
+        });
+
+        it('should update existing route coordinates', () => {
+            const initialPath = [{ lat: 34.1458, lng: -83.8177, altitude: 0 }];
+            const updatedPath = [
+                { lat: 34.1458, lng: -83.8177, altitude: 0 },
+                { lat: 34.1460, lng: -83.8180, altitude: 0 },
+            ];
+
+            mapController.drawRoute(initialPath);
+            mapController.drawRoute(updatedPath);
+
+            expect(createdPolylines).toHaveLength(1);
+            expect(createdPolylines[0].coordinates).toEqual(updatedPath);
+        });
+
+        it('should clear the route', () => {
+            const routePath = [{ lat: 34.1458, lng: -83.8177, altitude: 0 }];
+            mapController.drawRoute(routePath);
+
+            expect(createdPolylines).toHaveLength(1);
+
+            mapController.clearRoute();
+            expect(mockMap.removeChild).toHaveBeenCalledWith(createdPolylines[0]);
         });
     });
 
