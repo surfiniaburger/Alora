@@ -32,14 +32,10 @@ export default function StationList({ stations }: StationListProps) {
     }
 
     const handleNavigate = (station: EVChargingStation) => {
-        // Trigger navigation by sending a text prompt to the AI
         console.log('[StationList] Selecting station:', station.name);
         selectStation(station);
 
         // Use shared navigation utility
-        if (client && connected) {
-            client.sendRealtimeText(`show route to station ${station.placeId}`);
-        }
         navigateToStation(station, client, connected);
     };
 
