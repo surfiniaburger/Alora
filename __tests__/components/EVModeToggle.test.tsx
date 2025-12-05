@@ -44,6 +44,7 @@ describe('EVModeToggle', () => {
     const mockSetTemplate = vi.fn();
     const mockClientSend = vi.fn();
     const mockSetUserLocation = vi.fn();
+    let mockStoreState: any; // Shared state for all tests
 
     // Mock geolocation
     const mockGeolocation = {
@@ -53,11 +54,20 @@ describe('EVModeToggle', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        (useEVModeStore as any).mockReturnValue({
+        // Initialize the store state for each test
+        mockStoreState = {
             isEVModeActive: false,
             toggleEVMode: mockToggleEVMode,
             setUserLocation: mockSetUserLocation,
+        };
+
+        // Make toggleEVMode actually update the mock state
+        mockToggleEVMode.mockImplementation(() => {
+            mockStoreState.isEVModeActive = !mockStoreState.isEVModeActive;
         });
+
+        (useEVModeStore as any).mockReturnValue(mockStoreState);
+        (useEVModeStore as any).getState = vi.fn(() => mockStoreState);
 
         (useTools as any).mockReturnValue({
             setTemplate: mockSetTemplate,
@@ -97,11 +107,8 @@ describe('EVModeToggle', () => {
     });
 
     it('renders in EV Mode when active', () => {
-        (useEVModeStore as any).mockReturnValue({
-            isEVModeActive: true,
-            toggleEVMode: mockToggleEVMode,
-            setUserLocation: mockSetUserLocation,
-        });
+        // Directly modify the shared state
+        mockStoreState.isEVModeActive = true;
 
         render(<EVModeToggle />);
 
@@ -142,11 +149,8 @@ describe('EVModeToggle', () => {
     it('sends Road Atlanta coordinates when switching to Race Mode', async () => {
         const user = userEvent.setup();
 
-        (useEVModeStore as any).mockReturnValue({
-            isEVModeActive: true,
-            toggleEVMode: mockToggleEVMode,
-            setUserLocation: mockSetUserLocation,
-        });
+        // Directly modify the shared state
+        mockStoreState.isEVModeActive = true;
 
         render(<EVModeToggle />);
 
