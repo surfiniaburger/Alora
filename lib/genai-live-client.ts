@@ -73,7 +73,16 @@ export interface LiveClientEventTypes {
 }
 
 // FIX: Refactored to use composition over inheritance for EventEmitter to resolve method resolution issues.
-export class GenAILiveClient {
+/**
+ * Minimal interface for the MultimodalLiveClient to be used by other parts of the application.
+ * Promotes reusability and dependency inversion.
+ */
+export interface MultimodalLiveClient {
+  send: (messages: Part | Part[]) => void;
+  sendRealtimeText: (text: string) => void;
+}
+
+export class GenAILiveClient implements MultimodalLiveClient {
   public readonly model: string = DEFAULT_LIVE_API_MODEL;
 
   // FIX: Use an internal EventEmitter instance
@@ -179,7 +188,7 @@ export class GenAILiveClient {
       this.emitter.emit('error', new ErrorEvent('Client is not connected'));
       return;
     }
-    
+
     chunks.forEach(chunk => {
       this.session!.sendRealtimeInput({ media: chunk });
     });
