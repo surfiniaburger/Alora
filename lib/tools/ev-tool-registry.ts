@@ -25,7 +25,9 @@ import { MapMarker, useLogStore, useMapStore } from '@/lib/state';
 import { useEVModeStore, EVVehicleProfile, EVChargingStation } from '@/lib/ev-mode-state';
 import { ToolImplementation, ToolContext } from './tool-types';
 import { mapsGrounding } from './maps-grounding-tool';
+import { vehicleTools } from './vehicle-tools';
 import { MILES_PER_KWH_ESTIMATE } from '@/lib/constants';
+import { controlToolsImplementation } from './control-tools';
 
 /**
  * TOOL 1: setEVVehicleProfile
@@ -104,8 +106,10 @@ const setEVVehicleProfile: ToolImplementation = async (args, context) => {
  * 7. Return grounded response to user
  */
 const findEVChargingStations: ToolImplementation = async (args, context) => {
+    console.log('[EV Tool] >>> findEVChargingStations TRIGGERED <<<');
     console.log('[EV Tool] findEVChargingStations called with args:', JSON.stringify(args, null, 2));
-    console.log('[EV Tool] Context:', { hasPlacesLib: !!context.placesLib, hasMap: !!context.map });
+    console.log('[EV Tool] Context check - Maps:', !!context.map, 'Places:', !!context.placesLib, 'Grounding:', typeof fetchMapsGroundedResponseREST);
+
 
     try {
         const {
@@ -202,87 +206,85 @@ const findEVChargingStations: ToolImplementation = async (args, context) => {
         // Hydrate place details and create EV station objects
         if (placesLib) {
             console.log('[EV Tool] Starting async hydration process...');
-            (async () => {
-                try {
-                    console.log('[EV Tool] Hydrating stations...');
-                    const stations = await hydrateEVStations(
-                        groundingChunks,
-                        placesLib,
-                        currentLat,
-                        currentLng,
-                        vehicleProfile
-                    );
+            try {
+                console.log('[EV Tool] Hydrating stations...');
+                const stations = await hydrateEVStations(
+                    groundingChunks,
+                    placesLib,
+                    currentLat,
+                    currentLng,
+                    vehicleProfile
+                );
 
-                    console.log('[EV Tool] Hydrated stations count:', stations.length);
+                console.log('[EV Tool] Hydrated stations count:', stations.length);
 
-                    // Sort stations based on user preference
-                    if (sortBy === 'distance') {
-                        stations.sort((a, b) => a.distance - b.distance);
-                    } else if (sortBy === 'rating') {
-                        stations.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-                    } else if (sortBy === 'charging_speed') {
-                        // Prioritize DC Fast Charge
-                        stations.sort((a, b) => {
-                            const aHasFast = a.chargingSpeed.includes('DC Fast Charge') ? 1 : 0;
-                            const bHasFast = b.chargingSpeed.includes('DC Fast Charge') ? 1 : 0;
-                            return bHasFast - aHasFast;
-                        });
-                    }
-                    console.log('[EV Tool] Stations sorted by:', sortBy);
-
-                    // Limit results
-                    const limitedStations = stations.slice(0, maxResults);
-                    console.log('[EV Tool] Limited stations count:', limitedStations.length);
-
-                    // Update EV store
-                    useEVModeStore.getState().setNearbyStations(limitedStations);
-                    console.log('[EV Tool] Updated EV store');
-
-                    // Update map markers with green lightning bolt icons
-                    const markers: MapMarker[] = limitedStations.map(station => ({
-                        position: station.position,
-                        label: station.name,
-                        showLabel: true,
-                    }));
-
-                    useMapStore.getState().setMarkers(markers);
-                    console.log('[EV Tool] Updated map markers');
-
-                    // Frame the map to show the stations
-                    if (limitedStations.length === 1) {
-                        // Single station: zoom in close
-                        useMapStore.getState().setPreventAutoFrame(true);
-                        useMapStore.getState().setCameraTarget({
-                            center: { ...limitedStations[0].position, altitude: 200 },
-                            range: 500,
-                            tilt: 60,
-                            heading: 0,
-                            roll: 0,
-                        });
-                        console.log('[EV Tool] Set camera target for single station');
-                    } else if (limitedStations.length > 1) {
-                        // Multiple stations: let App auto-frame them
-                        useMapStore.getState().setPreventAutoFrame(false);
-                        console.log('[EV Tool] Enabled auto-framing for multiple stations');
-                    }
-
-                    // Log success
-                    useLogStore.getState().addTurn({
-                        role: 'system',
-                        text: `Found ${limitedStations.length} charging stations. Map updated to show locations.`,
-                        isFinal: true,
-                    });
-                    console.log('[EV Tool] Hydration complete');
-                } catch (e) {
-                    console.error('[EV Tool] ERROR during hydration:', e);
-                    console.error('[EV Tool] Error stack:', e instanceof Error ? e.stack : 'No stack trace');
-                    useLogStore.getState().addTurn({
-                        role: 'system',
-                        text: `Error processing station details: ${e instanceof Error ? e.message : 'Unknown error'}`,
-                        isFinal: true,
+                // Sort stations based on user preference
+                if (sortBy === 'distance') {
+                    stations.sort((a, b) => a.distance - b.distance);
+                } else if (sortBy === 'rating') {
+                    stations.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                } else if (sortBy === 'charging_speed') {
+                    // Prioritize DC Fast Charge
+                    stations.sort((a, b) => {
+                        const aHasFast = a.chargingSpeed.includes('DC Fast Charge') ? 1 : 0;
+                        const bHasFast = b.chargingSpeed.includes('DC Fast Charge') ? 1 : 0;
+                        return bHasFast - aHasFast;
                     });
                 }
-            })();
+                console.log('[EV Tool] Stations sorted by:', sortBy);
+
+                // Limit results
+                const limitedStations = stations.slice(0, maxResults);
+                console.log('[EV Tool] Limited stations count:', limitedStations.length);
+
+                // Update EV store
+                useEVModeStore.getState().setNearbyStations(limitedStations);
+                console.log('[EV Tool] Updated EV store');
+
+                // Update map markers with green lightning bolt icons
+                const markers: MapMarker[] = limitedStations.map(station => ({
+                    position: station.position,
+                    label: station.name,
+                    showLabel: true,
+                }));
+
+                useMapStore.getState().setMarkers(markers);
+                console.log('[EV Tool] Updated map markers');
+
+                // Frame the map to show the stations
+                if (limitedStations.length === 1) {
+                    // Single station: zoom in close
+                    useMapStore.getState().setPreventAutoFrame(true);
+                    useMapStore.getState().setCameraTarget({
+                        center: { ...limitedStations[0].position, altitude: 200 },
+                        range: 500,
+                        tilt: 60,
+                        heading: 0,
+                        roll: 0,
+                    });
+                    console.log('[EV Tool] Set camera target for single station');
+                } else if (limitedStations.length > 1) {
+                    // Multiple stations: let App auto-frame them
+                    useMapStore.getState().setPreventAutoFrame(false);
+                    console.log('[EV Tool] Enabled auto-framing for multiple stations');
+                }
+
+                // Log success
+                useLogStore.getState().addTurn({
+                    role: 'system',
+                    text: `Found ${limitedStations.length} charging stations. Map updated to show locations.`,
+                    isFinal: true,
+                });
+                console.log('[EV Tool] Hydration complete');
+            } catch (e) {
+                console.error('[EV Tool] ERROR during hydration:', e);
+                console.error('[EV Tool] Error stack:', e instanceof Error ? e.stack : 'No stack trace');
+                useLogStore.getState().addTurn({
+                    role: 'system',
+                    text: `Error processing station details: ${e instanceof Error ? e.message : 'Unknown error'}`,
+                    isFinal: true,
+                });
+            }
         } else {
             console.error('[EV Tool] No placesLib available!');
         }
@@ -748,4 +750,6 @@ export const evToolRegistry: Record<string, ToolImplementation> = {
     setUserLocation,
     // Reuse the existing mapsGrounding tool for general queries
     mapsGrounding,
+    ...vehicleTools,
+    ...controlToolsImplementation,
 };

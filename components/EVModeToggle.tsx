@@ -15,7 +15,7 @@
 
 import React, { useState } from 'react';
 import { useEVModeStore } from '@/lib/ev-mode-state';
-import { useTools } from '@/lib/state';
+import { useUI, useTools } from '@/lib/state';
 import './EVModeToggle.css';
 import { Geolocation } from '@capacitor/geolocation';
 import { Capacitor } from '@capacitor/core';
@@ -91,40 +91,46 @@ export default function EVModeToggle() {
         }
     };
 
-    const handleToggle = async () => {
-        console.log('[EVModeToggle] Toggle clicked, current mode:', isEVModeActive ? 'EV' : 'Race');
+    const { activeMode, setMode } = useUI();
+    const isEV = activeMode === 'EV';
 
+    const handleToggle = async () => {
+        console.log('[EVModeToggle] Toggle clicked, current mode:', activeMode);
         setIsLoading(true);
 
         try {
-            // Optimistically toggle the mode. We'll revert this in the catch block if anything fails.
-            toggleEVMode();
+            if (activeMode === 'EV') {
+                // Switch TO Race Mode
+                console.log('[EVModeToggle] Switching to RACE');
+                setMode('RACE');
 
-            // The logic below relies on the pre-toggle value of `isEVModeActive` due to closure.
-            if (isEVModeActive) {
-                // Switching TO Race Mode
-                console.log('[EVModeToggle] Switching to race-strategy');
+                // Sync Store (Force OFF)
+                if (useEVModeStore.getState().isEVModeActive) {
+                    toggleEVMode();
+                }
+
                 setTemplate('race-strategy');
 
-                // Send system message with Road Atlanta coordinates
-                const message = `SYSTEM UPDATE: Switch to Race Mode. Location: Road Atlanta Track (${ROAD_ATLANTA_COORDS.lat}, ${ROAD_ATLANTA_COORDS.lng}). Revert to Race Strategy. Prioritize lap times and tire degradation.`;
+                const message = `SYSTEM UPDATE: Switch to Race Mode. Location: Road Atlanta Track (${ROAD_ATLANTA_COORDS.lat}, ${ROAD_ATLANTA_COORDS.lng}). Revert to Race Strategy.`;
                 client.send([{ text: message }]);
-                console.log('[EVModeToggle] Sent to AI:', message);
+
             } else {
-                // Switching TO EV Mode - Optimistic UI pattern
-                console.log('[EVModeToggle] Switching to ev-assistant (optimistic)');
+                // Switch TO EV Mode
+                // Also handles switching from INSPECTOR -> EV
+                console.log('[EVModeToggle] Switching to EV');
+                setMode('EV');
+
+                // Sync Store (Force ON)
+                if (!useEVModeStore.getState().isEVModeActive) {
+                    toggleEVMode();
+                }
+
                 setTemplate('ev-assistant');
 
-                // Non-blocking location fetch with fast config
-                // UI switches immediately, location updates asynchronously
                 fetchCurrentLocation()
                     .then((coords) => {
-                        // Prevent race condition: only update if still in EV mode
-                        if (!useEVModeStore.getState().isEVModeActive) return;
+                        if (useUI.getState().activeMode !== 'EV') return; // Abort if user switched away
 
-                        console.log('[EVModeToggle] Location fetched:', coords);
-
-                        // Update EV store with user location
                         setUserLocation({
                             lat: coords.lat,
                             lng: coords.lng,
@@ -133,27 +139,18 @@ export default function EVModeToggle() {
                             description: 'Current GPS location',
                         });
 
-                        // Send update to AI with real coordinates
-                        const message = `SYSTEM UPDATE: Switch to EV Mode. Current User Coordinates: ${coords.lat}, ${coords.lng}. Re-center context to this location. Prioritize range anxiety and charging stations.`;
+                        const message = `SYSTEM UPDATE: Switch to EV Mode. Current User Coordinates: ${coords.lat}, ${coords.lng}. Re-center context.`;
                         client.send([{ text: message }]);
-                        console.log('[EVModeToggle] Sent to AI (with location):', message);
                     })
                     .catch((error) => {
-                        // Prevent race condition: only update if still in EV mode
-                        if (!useEVModeStore.getState().isEVModeActive) return;
-
-                        console.warn('[EVModeToggle] Location fetch failed, using fallback:', error);
-
-                        // Send fallback message to AI without exact coordinates
-                        const fallbackMessage = `SYSTEM UPDATE: Switched to EV Mode. Exact location unavailable, using last known region. Prioritize range anxiety and charging stations.`;
-                        client.send([{ text: fallbackMessage }]);
-                        console.log('[EVModeToggle] Sent to AI (fallback):', fallbackMessage);
+                        if (useUI.getState().activeMode !== 'EV') return;
+                        const msg = `SYSTEM UPDATE: Switched to EV Mode. Using last known region.`;
+                        client.send([{ text: msg }]);
                     });
             }
         } catch (error) {
-            console.error('[EVModeToggle] Error during mode switch, reverting state:', error);
-            // Revert the optimistic UI update on failure to maintain a consistent state.
-            toggleEVMode();
+            console.error('[EVModeToggle] Error:', error);
+            // Fallback?
         } finally {
             setIsLoading(false);
         }
@@ -162,20 +159,20 @@ export default function EVModeToggle() {
     return (
         <div className="ev-mode-toggle">
             <button
-                className={`toggle-button ${isEVModeActive ? 'ev-active' : 'race-active'} ${isLoading ? 'loading' : ''}`}
+                className={`toggle-button ${isEV ? 'ev-active' : 'race-active'} ${isLoading ? 'loading' : ''}`}
                 onClick={handleToggle}
                 disabled={isLoading}
-                aria-label={`Switch to ${isEVModeActive ? 'Race' : 'EV'} Mode`}
-                title={`Currently in ${isEVModeActive ? 'EV' : 'Race'} Mode. Click to switch.`}
+                aria-label={`Switch to ${isEV ? 'Race' : 'EV'} Mode`}
+                title={`Currently in ${activeMode} Mode. Click to switch.`}
             >
                 <span className="icon">
-                    {isLoading ? '⏳' : (isEVModeActive ? '⚡' : '🏎️')}
+                    {isLoading ? '⏳' : (isEV ? '⚡' : '🏎️')}
                 </span>
                 <span className="label">
-                    {isLoading ? 'Switching...' : (isEVModeActive ? 'EV Mode' : 'Race Mode')}
+                    {isLoading ? 'Switching...' : (isEV ? 'EV Mode' : 'Race Mode')}
                 </span>
                 <span className="mode-indicator">
-                    {isEVModeActive ? 'Charging Assistant' : 'Strategy Desk'}
+                    {isEV ? 'Charging Assistant' : 'Strategy Desk'}
                 </span>
             </button>
         </div>

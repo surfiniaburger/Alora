@@ -47,5 +47,9 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to find nearby EV charging stations.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera for the mechanic inspector feature.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone for voice commands.</string>
 </dict>
 </plist>

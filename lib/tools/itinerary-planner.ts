@@ -122,4 +122,22 @@ export const itineraryPlannerTools: FunctionCall[] = [
     isEnabled: true,
     scheduling: FunctionResponseScheduling.INTERRUPT,
   },
+
+  {
+    name: 'switch_app_mode',
+    description: 'Switches the application mode. Use this tool when the user asks to switch modes (e.g. "Go to EV mode", "Open Inspector", "Back to Race Mode") or when context requires a switch (e.g. low battery -> EV, visual check -> Inspector).',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        mode: {
+          type: 'STRING',
+          enum: ['RACE', 'EV', 'INSPECTOR'],
+          description: 'The target mode to switch to.'
+        }
+      },
+      required: ['mode']
+    },
+    isEnabled: true,
+    scheduling: FunctionResponseScheduling.INTERRUPT,
+  },
 ];

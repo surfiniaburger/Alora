@@ -30,6 +30,7 @@ import { Capacitor } from '@capacitor/core';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { navigateToStation } from '@/lib/navigation';
+import { fetchNHTSARecalls } from '@/lib/tools/vehicle-tools';
 
 // Hook to detect screen size for responsive component rendering
 const useMediaQuery = (query: string) => {
@@ -61,7 +62,7 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
   const [muted, setMuted] = useState(true);
   const [textPrompt, setTextPrompt] = useState('');
   const micButtonRef = useRef<HTMLButtonElement>(null);
-  const { toggleSidebar, toggleTelemetryPanel, isTelemetryPanelOpen } = useUI();
+  const { toggleSidebar, toggleTelemetryPanel, isTelemetryPanelOpen, setMode } = useUI();
   const { activateEasterEggMode } = useSettings();
   const { selectedStation, isEVModeActive } = useEVModeStore();
   const settingsClickTimestamps = useRef<number[]>([]);
@@ -206,6 +207,48 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
         setMuted(false);
         console.log('[Tool Registry] ✓ Microphone unmuted');
 
+        // Step 5: Inject Vehicle Context if available (Alora Inspector Phase 1.5)
+        const vehicleProfile = useEVModeStore.getState().vehicleProfile;
+        if (vehicleProfile) {
+          console.log('[ControlTray] Injecting saved vehicle profile:', vehicleProfile);
+          const contextMessage = `[SYSTEM] User Vehicle Profile Loaded:
+Make: ${vehicleProfile.make}
+Model: ${vehicleProfile.model}
+Year: ${vehicleProfile.year}
+Battery Capacity: ${vehicleProfile.batteryCapacity}kWh
+Connector: ${vehicleProfile.connectorTypes.join(', ')}
+
+INSTRUCTION: The user has already provided their vehicle details. Do NOT ask for Make/Model/Year. 
+Greet them by name (if known) or simply "Welcome back to your ${vehicleProfile.model}".
+You MUST then ask: "What is your current battery percentage?" to update your records.`;
+
+          // Send as text input (invisible to user in chat UI usually, but alerts agent)
+          // We use a slight delay to ensure the session is ready
+          setTimeout(() => {
+            client.send([{ text: contextMessage }]);
+
+            // Phase 2: Proactive System Alert for Recalls
+            // Check in background without blocking
+            console.log('[ControlTray] Starting proactive recall check for:', vehicleProfile.year, vehicleProfile.make, vehicleProfile.model);
+
+            fetchNHTSARecalls(vehicleProfile.make, vehicleProfile.model, vehicleProfile.year)
+              .then(data => {
+                console.log('[ControlTray] fetchNHTSARecalls completed. Data received:', data);
+                if (data && data.Count > 0) {
+                  console.log('[ControlTray] ⚠️ ALERT: Recalls found:', data.Count);
+                  const recallAlert = `[SYSTEM ALERT] SAFETY WARNING: ${data.Count} active recalls found for this ${vehicleProfile.year} ${vehicleProfile.make} ${vehicleProfile.model}.
+INSTRUCTION: You must inform the user about this IMMEDIATELY as a safety priority. Briefly summarize the top recall.`;
+                  console.log('[ControlTray] Injecting Recall Alert Message to Client...');
+                  client.send([{ text: recallAlert }]);
+                } else {
+                  console.log('[ControlTray] No recalls found (Count is 0 or undefined).');
+                }
+              })
+              .catch(err => console.error('[ControlTray] CRITICAL FAILURE: Background recall check failed', err));
+
+          }, 500);
+        }
+
       } catch (error) {
         console.error('[Tool Registry] Error in mic flow:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -349,6 +392,17 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
               >
                 <span className="icon material-symbols-outlined">bug_report</span>
                 <span>Debug Logs</span>
+              </button>
+
+              <button
+                className="hud-menu-item"
+                onClick={() => {
+                  setMode('INSPECTOR');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <span className="icon material-symbols-outlined">visibility</span>
+                <span>Inspector Mode</span>
               </button>
             </div>
           )}

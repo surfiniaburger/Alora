@@ -224,18 +224,28 @@ export function useLiveApi({
             isFinal: true,
           });
 
+          console.log(`[LiveAPI] Processing tool call: ${fc.name}`);
+          console.log(`[LiveAPI] Tool Arguments:`, JSON.stringify(fc.args));
 
           let toolResponse: GenerateContentResponse | string = 'ok';
           try {
             // Get the appropriate tool registry based on current template
             const template = useSettings.getState().template;
+            console.log(`[LiveAPI] Current template: ${template}`);
+
             const activeToolRegistry = getToolRegistry(template);
+            console.log(`[LiveAPI] Active registry keys: ${Object.keys(activeToolRegistry).join(', ')}`);
+
             const toolImplementation = activeToolRegistry[fc.name];
+
             if (toolImplementation) {
+              console.log(`[LiveAPI] Found implementation for ${fc.name}, executing...`);
               toolResponse = await toolImplementation(fc.args, toolContext);
+              console.log(`[LiveAPI] Execution complete for ${fc.name}`);
             } else {
-              toolResponse = `Unknown tool called: ${fc.name}.`;
-              console.warn(toolResponse);
+              const msg = `Unknown tool called: ${fc.name}. Available tools: ${Object.keys(activeToolRegistry).join(', ')}`;
+              toolResponse = msg;
+              console.warn(`[LiveAPI] ${msg}`);
             }
 
 

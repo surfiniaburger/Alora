@@ -241,4 +241,77 @@ export const evAssistantTools: FunctionCall[] = [
         isEnabled: true,
         scheduling: FunctionResponseScheduling.INTERRUPT,
     },
+    {
+        name: 'check_nhtsa_recalls',
+        description: `Checks for vehicle safety recalls using the official NHTSA API.
+    
+    This tool queries the National Highway Traffic Safety Administration (NHTSA) database to find active recalls for a specific vehicle.
+    
+    **When to call:**
+    - User asks: "Are there any recalls for my car?", "Is my vehicle safe?", "Check for recalls"
+    - User mentions a safety concern (e.g., "My brakes feel weird", "I heard about a recall")
+    - Proactively when a new vehicle profile is set (if directed by system)
+    
+    **How to use:**
+    - If vehicle profile exists, the tool can infer make/model/year (pass them if you have them, otherwise tool falls back to stored profile)
+    - If no profile, ask user for Make, Model, and Year first`,
+        parameters: {
+            type: 'OBJECT',
+            properties: {
+                make: {
+                    type: 'STRING',
+                    description: 'Vehicle manufacturer (e.g., Toyota, Ford, Tesla)',
+                },
+                model: {
+                    type: 'STRING',
+                    description: 'Vehicle model (e.g., Camry, F-150, Model 3)',
+                },
+                year: {
+                    type: 'NUMBER',
+                    description: 'Model year (e.g., 2022)',
+                },
+            },
+            // Arguments are optional because the tool falls back to the persisted Vehicle Profile
+        },
+        isEnabled: true,
+        scheduling: FunctionResponseScheduling.INTERRUPT,
+    },
+    {
+        name: 'inspect_vehicle_component',
+        description: `Moves the virtual camera to visually inspect specific parts of the vehicle on the 3D map.
+    
+    Call this when the user asks about specific components or when discussing potential issues (e.g., "Check the tires", "How breaks look?").
+    This provides a dramatic visual "Mechanic's Eye" view.`,
+        parameters: {
+            type: 'OBJECT',
+            properties: {
+                component: {
+                    type: 'STRING',
+                    description: 'The vehicle component to inspect. Supported: tires, wheels, brakes, hood, engine, trunk, interior, cockpit, overview.',
+                    enum: ['tires', 'wheels', 'brakes', 'hood', 'engine', 'trunk', 'interior', 'cockpit', 'overview'],
+                },
+            },
+            required: ['component'],
+        },
+        isEnabled: true,
+        scheduling: FunctionResponseScheduling.INTERRUPT,
+    },
+
+    {
+        name: 'switch_app_mode',
+        description: 'Switches the application mode. Use this tool when the user asks to switch modes (e.g. "Go to EV mode", "Open Inspector", "Back to Race Mode") or when context requires a switch (e.g. low battery -> EV, visual check -> Inspector).',
+        parameters: {
+            type: 'OBJECT',
+            properties: {
+                mode: {
+                    type: 'STRING',
+                    enum: ['RACE', 'EV', 'INSPECTOR'],
+                    description: 'The target mode to switch to.'
+                }
+            },
+            required: ['mode']
+        },
+        isEnabled: true,
+        scheduling: FunctionResponseScheduling.INTERRUPT,
+    },
 ];

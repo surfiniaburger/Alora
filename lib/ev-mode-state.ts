@@ -87,40 +87,52 @@ interface EVModeState {
 /**
  * EV Mode State Store Implementation
  */
-export const useEVModeStore = create<EVModeState>((set) => ({
-    // Initial State
-    isEVModeActive: false,
-    vehicleProfile: null,
-    nearbyStations: [],
-    selectedStation: null,
-    routeToStation: null,
-    userLocation: null,
-    routePath: null,
+import { persist } from 'zustand/middleware';
 
-    // Toggle EV Mode on/off
-    toggleEVMode: () => set((state) => ({
-        isEVModeActive: !state.isEVModeActive
-    })),
+export const useEVModeStore = create(
+    persist<EVModeState>(
+        (set) => ({
+            // Initial State
+            isEVModeActive: false,
+            vehicleProfile: null,
+            nearbyStations: [],
+            selectedStation: null,
+            routeToStation: null,
+            userLocation: null,
+            routePath: null,
 
-    // Setters
-    setVehicleProfile: (profile) => set({ vehicleProfile: profile }),
-    setNearbyStations: (stations) => set({ nearbyStations: stations }),
-    selectStation: (station) => set({ selectedStation: station }),
-    setRouteToStation: (route) => set({ routeToStation: route }),
-    setUserLocation: (location) => {
-        console.log('[EV Store] Setting user location:', location);
-        set({ userLocation: location });
-    },
-    setRoutePath: (path) => set({ routePath: path }),
-    clearRoutePath: () => set({ routePath: null }),
+            // Toggle EV Mode on/off
+            toggleEVMode: () => set((state) => ({
+                isEVModeActive: !state.isEVModeActive
+            })),
 
-    // Clear all data
-    clearEVData: () => set({
-        vehicleProfile: null,
-        nearbyStations: [],
-        selectedStation: null,
-        routeToStation: null,
-        userLocation: null,
-        routePath: null,
-    }),
-}));
+            // Setters
+            setVehicleProfile: (profile) => set({ vehicleProfile: profile }),
+            setNearbyStations: (stations) => set({ nearbyStations: stations }),
+            selectStation: (station) => set({ selectedStation: station }),
+            setRouteToStation: (route) => set({ routeToStation: route }),
+            setUserLocation: (location) => {
+                console.log('[EV Store] Setting user location:', location);
+                set({ userLocation: location });
+            },
+            setRoutePath: (path) => set({ routePath: path }),
+            clearRoutePath: () => set({ routePath: null }),
+
+            // Clear all data
+            clearEVData: () => set({
+                vehicleProfile: null,
+                nearbyStations: [],
+                selectedStation: null,
+                routeToStation: null,
+                userLocation: null,
+                routePath: null,
+            }),
+        }),
+        {
+            name: 'ev-mode-storage',
+            partialize: (state) => ({
+                vehicleProfile: state.vehicleProfile,
+            } as any),
+        }
+    )
+);
