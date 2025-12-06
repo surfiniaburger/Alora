@@ -82,7 +82,7 @@ export interface MultimodalLiveClient {
   sendRealtimeText: (text: string) => void;
 }
 
-export class GenAILiveClient {
+export class GenAILiveClient implements MultimodalLiveClient {
   public readonly model: string = DEFAULT_LIVE_API_MODEL;
 
   // FIX: Use an internal EventEmitter instance
