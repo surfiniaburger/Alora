@@ -3,7 +3,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { LiveConnectConfig, Modality, LiveServerContent } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -14,10 +14,13 @@ import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 import {
   useSettings,
   useLogStore,
-  useTools,
+  useAppStore,
   ConversationTurn,
   useUI,
 } from '@/lib/state';
+import * as raceConfig from '@/config/modes/race';
+import * as evConfig from '@/config/modes/ev';
+import * as inspectorConfig from '@/config/modes/inspector';
 import { SourcesPopover } from '../sources-popover/sources-popover';
 import { GroundingWidget } from '../GroundingWidget';
 
@@ -64,9 +67,22 @@ export default function StreamingConsole() {
     heldGroundedResponse,
     clearHeldGroundedResponse,
   } = useLiveAPIContext();
-  const { systemPrompt, voice } = useSettings();
-  const { tools } = useTools();
+  const { voice } = useSettings();
+  const { mode } = useAppStore();
   const turns = useLogStore(state => state.turns);
+  const addTurn = useLogStore(state => state.addTurn);
+
+  // Select config based on current mode
+  const modeConfig = useMemo(() => {
+    switch (mode) {
+      case 'race': return raceConfig;
+      case 'ev': return evConfig;
+      case 'inspector': return inspectorConfig;
+      default: return raceConfig;
+    }
+  }, [mode]);
+
+  const { tools, systemPrompt } = modeConfig;
   const { showSystemMessages } = useUI();
   const { isEVModeActive } = useEVModeStore();
   const isAwaitingFunctionResponse = useLogStore(
@@ -166,8 +182,25 @@ export default function StreamingConsole() {
     setConfig(config);
   }, [setConfig, systemPrompt, tools, voice]);
 
+  // Notify LLM when mode changes
+  useEffect(() => {
+    if (mode) {
+      const modeNames = {
+        race: 'RACE MODE - Chief Strategist',
+        ev: 'EV MODE - Charging Assistant',
+        inspector: 'INSPECTOR MODE - Vehicle Inspector',
+      };
+
+      addTurn({
+        role: 'system',
+        text: `Mode switched to ${modeNames[mode]}. All tools and context have been updated for this mode.`,
+        isFinal: true,
+      });
+    }
+  }, [mode, addTurn]);
+
   // Handle Transcriptions
-  const addTurn = useLogStore(state => state.addTurn);
+
   const updateLastTurn = useLogStore(state => state.updateLastTurn);
   const mergeIntoLastAgentTurn = useLogStore(state => state.mergeIntoLastAgentTurn);
   // We need access to the current turns state inside the event handlers without triggering re-renders on every change.

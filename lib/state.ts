@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { itineraryPlannerTools } from './tools/itinerary-planner';
 import { evAssistantTools } from './tools/ev-assistant-tools';
 
@@ -45,6 +46,36 @@ export const personas: Record<string, { prompt: string; voice: string }> = {
     voice: 'Puck',
   },
 };
+
+/**
+ * App State (Persistent)
+ */
+export type AppMode = 'race' | 'ev' | 'inspector';
+
+export interface VehicleProfile {
+  make: string;
+  model: string;
+  year: number;
+}
+
+export const useAppStore = create<{
+  mode: AppMode;
+  vehicleProfile: VehicleProfile | null;
+  setMode: (mode: AppMode) => void;
+  setVehicleProfile: (profile: VehicleProfile | null) => void;
+}>()(
+  persist(
+    (set) => ({
+      mode: 'race',
+      vehicleProfile: null,
+      setMode: (mode) => set({ mode }),
+      setVehicleProfile: (vehicleProfile) => set({ vehicleProfile }),
+    }),
+    {
+      name: 'alora-app-state',
+    }
+  )
+);
 
 /**
  * Settings
