@@ -1,13 +1,19 @@
 import { Capacitor } from '@capacitor/core';
 import { EVChargingStation } from '@/lib/ev-mode-state';
 
+// Minimal interface for the MultimodalLiveClient
+interface MultimodalLiveClient {
+    send: (messages: { text: string }[]) => void;
+    sendRealtimeText: (text: string) => void;
+}
+
 /**
  * Handles navigation to a selected EV charging station.
  * Opens Google Maps (native or web) and sends an AI announcement.
  */
 export function navigateToStation(
     station: EVChargingStation | null | undefined,
-    client?: { send: (messages: { text: string }[]) => void },
+    client?: MultimodalLiveClient,
     connected?: boolean
 ) {
     if (!station) return;
@@ -28,6 +34,10 @@ export function navigateToStation(
 
     // Send AI announcement if client is available
     if (client && connected) {
+        // Trigger in-app route calculation and visualization
+        // This invokes the 'showRouteToStation' tool via Gemini
+        client.sendRealtimeText(`show route to station ${station.placeId}`);
+
         const aiMessage = `SYSTEM ALERT: User has started navigation to ${station.name}. End conversation to allow for driving focus, or offer to play music.`;
         client.send([{ text: aiMessage }]);
         console.log(`[Navigation] AI announcement sent: ${aiMessage}`);
