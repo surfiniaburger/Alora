@@ -78,7 +78,7 @@ export interface LiveClientEventTypes {
  * Promotes reusability and dependency inversion.
  */
 export interface MultimodalLiveClient {
-  send: (messages: { text: string }[]) => void;
+  send: (messages: Part | Part[]) => void;
   sendRealtimeText: (text: string) => void;
 }
 
