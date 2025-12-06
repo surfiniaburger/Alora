@@ -1,11 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { EVChargingStation } from '@/lib/ev-mode-state';
-
-// Minimal interface for the MultimodalLiveClient
-interface MultimodalLiveClient {
-    send: (messages: { text: string }[]) => void;
-    sendRealtimeText: (text: string) => void;
-}
+import { MultimodalLiveClient } from '@/lib/genai-live-client';
 
 /**
  * Handles navigation to a selected EV charging station.
