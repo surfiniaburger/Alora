@@ -1,0 +1,47 @@
+steps:
+  # Build the Docker image with build args
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_KEY=${_VITE_API_KEY}'
+      - '--build-arg'
+      - 'VITE_GOOGLE_MAPS_API_KEY=${_VITE_GOOGLE_MAPS_API_KEY}'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/alora:${_TAG}'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/alora:latest'
+      - '.'
+
+  # Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/alora'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'alora'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/alora:${_TAG}'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+
+images:
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/alora:${_TAG}'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/alora:latest'
+
+substitutions:
+  _VITE_API_KEY: ''
+  _VITE_GOOGLE_MAPS_API_KEY: ''
+  _TAG: 'latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+

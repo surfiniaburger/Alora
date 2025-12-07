@@ -34,14 +34,13 @@ jobs:
         with:
           project_id: ${{ env.PROJECT_ID }}
 
-      - name: Deploy to Cloud Run
+      - name: Build and Deploy via Cloud Build
         run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --source . \
-            --region ${{ env.REGION }} \
-            --allow-unauthenticated \
-            --set-build-env-vars="VITE_API_KEY=${{ secrets.VITE_API_KEY }},VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}"
+          gcloud builds submit \
+            --config=cloudbuild.yaml \
+            --substitutions="_VITE_API_KEY=${{ secrets.VITE_API_KEY }},_VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}"
 
       - name: Show Service URL
         run: |
           echo "🚀 Deployed to: $(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format='value(status.url)')"
+
