@@ -28,6 +28,7 @@ import TelemetryPanel from './components/telemetry/TelemetryPanel';
 import EVModeToggle from './components/EVModeToggle';
 import EVStationPanel from './components/ev/EVStationPanel';
 import DebugPanel from './components/DebugPanel';
+import VideoInspector from './components/inspector/VideoInspector';
 import { LiveAPIProvider } from './contexts/LiveAPIContext';
 // FIX: Correctly import APIProvider as a named export.
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
@@ -337,6 +338,7 @@ function AppComponent() {
             onCameraChange={handleCameraChange}
             {...viewProps}>
           </Map3D>
+          <VideoInspector />
         </div>
 
         {/* UI Overlay (z-index: 10, pointer-events: none) */}

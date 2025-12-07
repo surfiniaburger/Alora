@@ -246,38 +246,66 @@ const frameLocations: ToolImplementation = async (args, context) => {
  * Race Strategy Tool Registry
  * Contains tools specific to race telemetry and strategy.
  */
+import { appControlTools } from './app-control';
+import { vehicleTools } from './vehicle-tools';
+// evToolRegistry is already imported at the top of the file
+
+/**
+ * Race Mode Tool Registry
+ * Tools available in Race Mode (Chief Strategist)
+ */
 export const raceToolRegistry: Record<string, ToolImplementation> = {
   getLiveTelemetry,
   mapsGrounding,
   frameEstablishingShot,
   frameLocations,
+  ...appControlTools,
+};
+
+/**
+ * EV Mode Tool Registry
+ * Tools available in EV Mode (Charging Assistant)
+ */
+export const evModeToolRegistry: Record<string, ToolImplementation> = {
+  ...evToolRegistry,
+  ...appControlTools,
+  ...vehicleTools,
+};
+
+/**
+ * Inspector Mode Tool Registry
+ * Tools available in Inspector Mode (Vehicle Inspector)
+ */
+export const inspectorToolRegistry: Record<string, ToolImplementation> = {
+  ...vehicleTools,
+  ...appControlTools,
 };
 
 /**
  * Dynamic Tool Registry
  * 
- * Returns the appropriate tool registry based on the provided template.
- * This allows seamless switching between Race Mode and EV Mode without conflicts.
+ * Returns the appropriate tool registry based on the provided mode.
+ * This ensures the correct tool implementations are available for execution.
  * 
- * @param template - The current active template ('race-strategy' or 'ev-assistant')
- * @returns The tool registry for the active template
+ * @param mode - The current active mode ('race', 'ev', 'inspector')
+ * @returns The tool registry for the active mode
  */
-export function getToolRegistry(template: string): Record<string, ToolImplementation> {
-  console.log('[Tool Registry] getToolRegistry called with template:', template);
+export function getToolRegistry(mode: string): Record<string, ToolImplementation> {
+  // console.log('[Tool Registry] getToolRegistry called with mode:', mode);
 
-  if (template === 'ev-assistant') {
-    console.log('[Tool Registry] Loading EV tools...');
-    console.log('[Tool Registry] EV tools loaded:', Object.keys(evToolRegistry));
-    return evToolRegistry;
+  switch (mode) {
+    case 'ev':
+      return evModeToolRegistry;
+    case 'inspector':
+      return inspectorToolRegistry;
+    case 'race':
+    default:
+      return raceToolRegistry;
   }
-
-  // Default to race tools
-  console.log('[Tool Registry] Using race tools');
-  return raceToolRegistry;
 }
 
 /**
  * Legacy export for backward compatibility.
- * Use getToolRegistry() for dynamic tool selection.
  */
 export const toolRegistry: Record<string, ToolImplementation> = raceToolRegistry;
+

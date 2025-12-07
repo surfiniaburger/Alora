@@ -30,7 +30,7 @@ import { LiveConnectConfig, Modality, LiveServerToolCall } from '@google/genai';
 import { AudioStreamer } from '../lib/audio-streamer';
 import { audioContext } from '../lib/utils';
 import VolMeterWorket from '../lib/worklets/vol-meter';
-import { useLogStore, useMapStore, useSettings } from '@/lib/state';
+import { useLogStore, useMapStore, useSettings, useAppStore } from '@/lib/state';
 import { GenerateContentResponse, GroundingChunk } from '@google/genai';
 import { ToolContext, getToolRegistry } from '@/lib/tools/tool-registry';
 
@@ -227,9 +227,9 @@ export function useLiveApi({
 
           let toolResponse: GenerateContentResponse | string = 'ok';
           try {
-            // Get the appropriate tool registry based on current template
-            const template = useSettings.getState().template;
-            const activeToolRegistry = getToolRegistry(template);
+            // Get the appropriate tool registry based on current app mode
+            const mode = useAppStore.getState().mode;
+            const activeToolRegistry = getToolRegistry(mode);
             const toolImplementation = activeToolRegistry[fc.name];
             if (toolImplementation) {
               toolResponse = await toolImplementation(fc.args, toolContext);
