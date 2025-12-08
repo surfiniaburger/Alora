@@ -38,7 +38,7 @@ export default function VideoInspector() {
         facingMode: "user"
     };
 
-    const [constraints, setConstraints] = useState<any>(videoConstraints);
+    const [constraints, setConstraints] = useState<MediaStreamConstraints>(videoConstraints);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
