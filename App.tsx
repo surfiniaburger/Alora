@@ -40,6 +40,7 @@ import { useEVModeStore } from './lib/ev-mode-state';
 import { MapController } from './lib/map-controller';
 import { useTelemetrySimulation } from './hooks/use-telemetry';
 import { useGeolocation } from './hooks/use-geolocation';
+import { LiveConnectConfig } from '@google/genai';
 
 const API_KEY = import.meta.env.VITE_API_KEY;
 if (!API_KEY) {
@@ -140,8 +141,8 @@ function InnerApp({
         ],
       }));
 
-    const config: any = {
-      responseModalities: ['AUDIO'],
+    const config: LiveConnectConfig = {
+      responseModalities: ['AUDIO'] as any,
       speechConfig: {
         voiceConfig: {
           prebuiltVoiceConfig: {
@@ -175,6 +176,8 @@ function InnerApp({
     if (map && maps3dLib && elevationLib) {
       mapController.current = new MapController({
         map,
+        // The Maps 3D library is currently in Alpha and the types in @types/google.maps
+        // may not fully reflect the latest experimental features, necessitating this cast.
         maps3dLib: maps3dLib as unknown as google.maps.Maps3DLibrary,
         elevationLib: elevationLib as unknown as google.maps.ElevationLibrary,
       });

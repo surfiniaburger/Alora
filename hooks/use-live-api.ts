@@ -161,7 +161,7 @@ export function useLiveApi({
         client.disconnect();
 
         // 3. Wait for full disconnect (longer buffer for stability)
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise<void>(resolve => client.once('close', () => resolve()));
 
         // 4. Reconnect
         await client.connect(newConfig);

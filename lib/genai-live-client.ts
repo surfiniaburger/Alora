@@ -68,6 +68,7 @@ export class GenAILiveClient implements MultimodalLiveClient {
 
   public on = this.emitter.on.bind(this.emitter);
   public off = this.emitter.off.bind(this.emitter);
+  public once = this.emitter.once.bind(this.emitter);
 
   protected readonly client: GoogleGenAI;
   protected session?: Session;

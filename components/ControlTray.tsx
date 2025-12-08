@@ -224,11 +224,10 @@ STRICT INSTRUCTION: The user has ALREADY set up their vehicle profile.
 
           // Send as text input (invisible to user in chat UI usually, but alerts agent)
           // We use a slight delay to ensure the session is ready
-          setTimeout(() => {
+          const sendContext = () => {
             client.send([{ text: contextMessage }]);
 
             // Phase 2: Proactive System Alert for Recalls
-            // Check in background without blocking
             console.log('[ControlTray] Starting proactive recall check for:', vehicleProfile.year, vehicleProfile.make, vehicleProfile.model);
 
             fetchNHTSARecalls(vehicleProfile.make, vehicleProfile.model, vehicleProfile.year)
@@ -244,9 +243,19 @@ INSTRUCTION: You must inform the user about this IMMEDIATELY as a safety priorit
                   console.log('[ControlTray] No recalls found (Count is 0 or undefined).');
                 }
               })
-              .catch(err => console.error('[ControlTray] CRITICAL FAILURE: Background recall check failed', err));
+              .catch(err => {
+                console.error('[ControlTray] CRITICAL FAILURE: Background recall check failed', err);
+                useLogStore.getState().addTurn({
+                  role: 'system',
+                  text: `Warning: Failed to check for vehicle recalls. Please verify your vehicle details manually.`,
+                  isFinal: true,
+                });
+              });
+          };
 
-          }, 500);
+          // Ensure session is ready before sending context
+          // The 'setupcomplete' event indicates the server has accepted the configuration
+          client.once('setupcomplete', sendContext);
         }
 
       } catch (error) {
