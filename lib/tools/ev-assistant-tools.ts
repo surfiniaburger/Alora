@@ -13,6 +13,7 @@
 
 import { FunctionCall } from './tool-types';
 import { FunctionResponseScheduling } from '@google/genai';
+import { switch_app_mode, mapsGrounding } from './core-tools';
 
 export const evAssistantTools: FunctionCall[] = [
     {
@@ -213,34 +214,7 @@ export const evAssistantTools: FunctionCall[] = [
         isEnabled: true,
         scheduling: FunctionResponseScheduling.INTERRUPT,
     },
-    {
-        name: 'mapsGrounding',
-        description: `Fallback tool for general location queries not specific to EV charging.
-    
-    Use this for:
-    - Finding restaurants, coffee shops, hotels near charging stations
-    - General navigation queries
-    - Exploring areas while waiting for charging
-    
-    Do NOT use this for finding charging stations - use findEVChargingStations instead.`,
-        parameters: {
-            type: 'OBJECT',
-            properties: {
-                query: {
-                    type: 'STRING',
-                    description: 'The search query (e.g., "coffee shops near me", "hotels in downtown")',
-                },
-                markerBehavior: {
-                    type: 'STRING',
-                    enum: ['mentioned', 'all', 'none'],
-                    description: 'Controls map markers. Use "all" to show all results, "mentioned" for only discussed places.',
-                },
-            },
-            required: ['query'],
-        },
-        isEnabled: true,
-        scheduling: FunctionResponseScheduling.INTERRUPT,
-    },
+    mapsGrounding,
     {
         name: 'check_nhtsa_recalls',
         description: `Checks for vehicle safety recalls using the official NHTSA API.
@@ -296,22 +270,5 @@ export const evAssistantTools: FunctionCall[] = [
         isEnabled: true,
         scheduling: FunctionResponseScheduling.INTERRUPT,
     },
-
-    {
-        name: 'switch_app_mode',
-        description: 'Switches the application mode. Use this tool when the user asks to switch modes (e.g. "Go to EV mode", "Open Inspector", "Back to Race Mode") or when context requires a switch (e.g. low battery -> EV, visual check -> Inspector).',
-        parameters: {
-            type: 'OBJECT',
-            properties: {
-                mode: {
-                    type: 'STRING',
-                    enum: ['RACE', 'EV', 'INSPECTOR'],
-                    description: 'The target mode to switch to.'
-                }
-            },
-            required: ['mode']
-        },
-        isEnabled: true,
-        scheduling: FunctionResponseScheduling.INTERRUPT,
-    },
+    switch_app_mode,
 ];

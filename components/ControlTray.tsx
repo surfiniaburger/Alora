@@ -211,16 +211,16 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
         const vehicleProfile = useEVModeStore.getState().vehicleProfile;
         if (vehicleProfile) {
           console.log('[ControlTray] Injecting saved vehicle profile:', vehicleProfile);
-          const contextMessage = `[SYSTEM] User Vehicle Profile Loaded:
-Make: ${vehicleProfile.make}
-Model: ${vehicleProfile.model}
-Year: ${vehicleProfile.year}
-Battery Capacity: ${vehicleProfile.batteryCapacity}kWh
-Connector: ${vehicleProfile.connectorTypes.join(', ')}
+          const contextMessage = `[SYSTEM] VEHICLE PROFILE LOADED - DO NOT ASK FOR SETUP.
+Vehicle: ${vehicleProfile.year} ${vehicleProfile.make} ${vehicleProfile.model}
+Battery: ${vehicleProfile.batteryCapacity}kWh
+Connectors: ${vehicleProfile.connectorTypes.join(', ')}
 
-INSTRUCTION: The user has already provided their vehicle details. Do NOT ask for Make/Model/Year. 
-Greet them by name (if known) or simply "Welcome back to your ${vehicleProfile.model}".
-You MUST then ask: "What is your current battery percentage?" to update your records.`;
+STRICT INSTRUCTION: The user has ALREADY set up their vehicle profile. 
+1. DO NOT ask what car they drive.
+2. DO NOT ask for year, make, or model.
+3. Greet the user: "Welcome back to your ${vehicleProfile.model}."
+4. IMMEDIATELY ask: "What is your current battery level?" to update the range estimate.`;
 
           // Send as text input (invisible to user in chat UI usually, but alerts agent)
           // We use a slight delay to ensure the session is ready

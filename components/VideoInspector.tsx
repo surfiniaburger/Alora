@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState, memo } from 'react';
 import classNames from 'classnames';
 import { useLiveAPIContext } from '../contexts/LiveAPIContext';
 import { useLogStore } from '@/lib/state';
+import './inspector/VideoInspector.css';
 
 type VideoInspectorProps = {
     active: boolean;
@@ -42,7 +43,7 @@ function VideoInspector({ active, onClose }: VideoInspectorProps) {
 
                     // Phase 4: Context Switch - Inform AI
                     if (connected) {
-                        client.sendRealtimeText("SYSTEM UPDATE: Mode changed to INSPECTOR. Video feed is now the Rear Camera. User is showing you a vehicle part. Analyze visuals for defects (rust, cracks, bubbles). Be technical and precise.");
+                        client.sendRealtimeText("SYSTEM UPDATE: Mode changed to INSPECTOR (AUGMENTED MECHANIC). \nUser is pointing the camera at a vehicle part. \nYour task: Identify the component, look for defects (rust, leaks, wear), and provide technical advice. \nBe precise, helpful, and concise.");
                     }
                 } catch (err) {
                     console.error('[VideoInspector] Error accessing camera:', err);
@@ -133,103 +134,25 @@ function VideoInspector({ active, onClose }: VideoInspectorProps) {
             <div className="inspector-hud">
                 <div className="reticle">
                     <svg viewBox="0 0 100 100" className="reticle-svg">
-                        <path d="M 10 10 L 30 10 M 10 10 L 10 30" stroke="rgba(0, 255, 255, 0.8)" strokeWidth="2" fill="none" />
-                        <path d="M 90 10 L 70 10 M 90 10 L 90 30" stroke="rgba(0, 255, 255, 0.8)" strokeWidth="2" fill="none" />
-                        <path d="M 10 90 L 30 90 M 10 90 L 10 70" stroke="rgba(0, 255, 255, 0.8)" strokeWidth="2" fill="none" />
-                        <path d="M 90 90 L 70 90 M 90 90 L 90 70" stroke="rgba(0, 255, 255, 0.8)" strokeWidth="2" fill="none" />
-                        <circle cx="50" cy="50" r="5" fill="rgba(255, 0, 0, 0.5)" />
+                        <path d="M 10 10 L 30 10 M 10 10 L 10 30" stroke="var(--ar-cyan)" strokeWidth="2" fill="none" />
+                        <path d="M 90 10 L 70 10 M 90 10 L 90 30" stroke="var(--ar-cyan)" strokeWidth="2" fill="none" />
+                        <path d="M 10 90 L 30 90 M 10 90 L 10 70" stroke="var(--ar-cyan)" strokeWidth="2" fill="none" />
+                        <path d="M 90 90 L 70 90 M 90 90 L 90 70" stroke="var(--ar-cyan)" strokeWidth="2" fill="none" />
+                        <circle cx="50" cy="50" r="2" fill="var(--ar-red)" opacity="0.8" />
                     </svg>
                 </div>
 
                 <div className="inspector-status">
-                    <span className="live-indicator">● LIVE VISION</span>
-                    <span className="mode-indicator">INSPECTOR MODE</span>
+                    <span className="live-indicator">● LIVE FEED</span>
+                    <span className="mode-indicator">MECHANIC_AI_V1</span>
+                    <span className="scanning-text">SCANNING_SURFACE...</span>
                 </div>
 
                 <button className="inspector-close-btn" onClick={onClose}>
                     <span className="material-symbols-outlined">close</span>
-                    EXIT
+                    DISENGAGE
                 </button>
             </div>
-
-            <style>{`
-        .video-inspector-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: #000;
-          z-index: 2000; /* Above Map and ControlTray */
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        .inspector-video {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        .inspector-hud {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none; /* Let clicks pass through if needed, but we have a button */
-        }
-        .reticle {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 200px;
-          height: 200px;
-          opacity: 0.8;
-        }
-        .inspector-status {
-          position: absolute;
-          top: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          gap: 1rem;
-          background: rgba(0, 0, 0, 0.5);
-          padding: 8px 16px;
-          border-radius: 20px;
-          color: #0ff;
-          font-family: monospace;
-          font-weight: bold;
-        }
-        .live-indicator {
-          color: #f00;
-          animation: blink 1s infinite;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-        
-        .inspector-close-btn {
-          position: absolute;
-          bottom: 40px;
-          left: 50%;
-          transform: translateX(-50%);
-          pointer-events: auto;
-          background: rgba(255, 255, 255, 0.2);
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          color: white;
-          padding: 12px 24px;
-          border-radius: 30px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-          backdrop-filter: blur(5px);
-          transition: all 0.2s;
-        }
-        .inspector-close-btn:hover {
-          background: rgba(255, 255, 255, 0.3);
-          transform: translateX(-50%) scale(1.05);
-        }
-      `}</style>
         </div>
     );
 }

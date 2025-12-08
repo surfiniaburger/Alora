@@ -1,0 +1,170 @@
+/* AR Head-Up Display (HUD) Styles */
+:root {
+    --ar-cyan: #00f0ff;
+    --ar-red: #ff2a2a;
+    --ar-bg: rgba(0, 20, 40, 0.6);
+}
+
+.video-inspector-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    z-index: 2000;
+    /* Above Map and ControlTray */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.inspector-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+    /* Slight transparency for AR feel if we had passthrough, but for now just style */
+}
+
+.inspector-hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    box-shadow: inset 0 0 100px rgba(0, 240, 255, 0.1);
+}
+
+/* Scanning Scanline Effect */
+.inspector-hud::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(to bottom,
+            rgba(18, 16, 16, 0) 50%,
+            rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg,
+            rgba(255, 0, 0, 0.06),
+            rgba(0, 255, 0, 0.02),
+            rgba(0, 0, 255, 0.06));
+    z-index: 2;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+}
+
+.reticle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    opacity: 0.9;
+    animation: pulse-reticle 2s infinite ease-in-out;
+}
+
+.reticle-svg path {
+    filter: drop-shadow(0 0 5px var(--ar-cyan));
+}
+
+@keyframes pulse-reticle {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+}
+
+.inspector-status {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 10, 20, 0.7);
+    padding: 12px 24px;
+    border: 1px solid var(--ar-cyan);
+    border-radius: 4px;
+    color: var(--ar-cyan);
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+
+.live-indicator {
+    color: var(--ar-red);
+    font-size: 0.8rem;
+    animation: blink 1s infinite step-start;
+}
+
+.mode-indicator {
+    font-size: 1.2rem;
+    text-shadow: 0 0 5px var(--ar-cyan);
+}
+
+.scanning-text {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    animation: type 2s steps(40, end);
+}
+
+/* Quest-friendly massive button */
+.inspector-close-btn {
+    position: absolute;
+    bottom: 80px;
+    /* Higher up for easier reach */
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: auto;
+    background: rgba(0, 20, 40, 0.8);
+    border: 2px solid var(--ar-red);
+    color: var(--ar-red);
+    padding: 16px 48px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px rgba(255, 42, 42, 0.4);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inspector-close-btn:hover,
+.inspector-close-btn:active {
+    background: var(--ar-red);
+    color: #000;
+    box-shadow: 0 0 40px rgba(255, 42, 42, 0.8);
+    transform: translateX(-50%) scale(1.1);
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}

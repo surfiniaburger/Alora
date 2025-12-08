@@ -104,12 +104,7 @@ export default function EVModeToggle() {
                 console.log('[EVModeToggle] Switching to RACE');
                 setMode('RACE');
 
-                // Sync Store (Force OFF)
-                if (useEVModeStore.getState().isEVModeActive) {
-                    toggleEVMode();
-                }
-
-                setTemplate('race-strategy');
+                // setTemplate and toggleEVMode are now handled by setMode in lib/state.ts
 
                 const message = `SYSTEM UPDATE: Switch to Race Mode. Location: Road Atlanta Track (${ROAD_ATLANTA_COORDS.lat}, ${ROAD_ATLANTA_COORDS.lng}). Revert to Race Strategy.`;
                 client.send([{ text: message }]);
@@ -120,12 +115,7 @@ export default function EVModeToggle() {
                 console.log('[EVModeToggle] Switching to EV');
                 setMode('EV');
 
-                // Sync Store (Force ON)
-                if (!useEVModeStore.getState().isEVModeActive) {
-                    toggleEVMode();
-                }
-
-                setTemplate('ev-assistant');
+                // setTemplate and toggleEVMode are now handled by setMode in lib/state.ts
 
                 fetchCurrentLocation()
                     .then((coords) => {

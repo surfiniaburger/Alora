@@ -8,7 +8,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EVModeToggle from '../../components/EVModeToggle';
 import { useEVModeStore } from '../../lib/ev-mode-state';
-import { useTools } from '../../lib/state';
+import { useTools, useUI } from '../../lib/state'; // Import useUI
 import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 
 // Mock dependencies
@@ -16,8 +16,15 @@ vi.mock('../../lib/ev-mode-state', () => ({
     useEVModeStore: vi.fn(),
 }));
 
+const { mockUseUI } = vi.hoisted(() => {
+    const fn = vi.fn() as any;
+    fn.getState = vi.fn();
+    return { mockUseUI: fn };
+});
+
 vi.mock('../../lib/state', () => ({
     useTools: vi.fn(),
+    useUI: mockUseUI,
 }));
 
 vi.mock('../../contexts/LiveAPIContext', () => ({
@@ -40,11 +47,13 @@ vi.mock('@capacitor/geolocation', () => ({
 }));
 
 describe('EVModeToggle', () => {
-    const mockToggleEVMode = vi.fn();
-    const mockSetTemplate = vi.fn();
+    // const mockToggleEVMode = vi.fn(); // Removed from component
+    const mockSetTemplate = vi.fn(); // Removed from component
     const mockClientSend = vi.fn();
     const mockSetUserLocation = vi.fn();
-    let mockStoreState: any; // Shared state for all tests
+    const mockSetMode = vi.fn(); // New centralized action
+
+    let mockStoreState: any; // Shared state for EV Store
 
     // Mock geolocation
     const mockGeolocation = {
@@ -54,17 +63,12 @@ describe('EVModeToggle', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        // Initialize the store state for each test
+        // Initialize the EV store state
         mockStoreState = {
             isEVModeActive: false,
-            toggleEVMode: mockToggleEVMode,
+            // toggleEVMode: mockToggleEVMode, // No longer called directly
             setUserLocation: mockSetUserLocation,
         };
-
-        // Make toggleEVMode actually update the mock state
-        mockToggleEVMode.mockImplementation(() => {
-            mockStoreState.isEVModeActive = !mockStoreState.isEVModeActive;
-        });
 
         (useEVModeStore as any).mockReturnValue(mockStoreState);
         (useEVModeStore as any).getState = vi.fn(() => mockStoreState);
@@ -72,6 +76,19 @@ describe('EVModeToggle', () => {
         (useTools as any).mockReturnValue({
             setTemplate: mockSetTemplate,
         });
+
+        // Mock useUI hook return (for components)
+        mockUseUI.mockReturnValue({
+            activeMode: 'RACE',
+            setMode: mockSetMode,
+        });
+
+        // Mock useUI.getState() (for logic inside callbacks)
+        mockUseUI.getState.mockReturnValue({
+            activeMode: 'RACE',
+            setMode: mockSetMode,
+        });
+
 
         (useLiveAPIContext as any).mockReturnValue({
             client: { send: mockClientSend },
@@ -81,6 +98,7 @@ describe('EVModeToggle', () => {
         Object.defineProperty(global.navigator, 'geolocation', {
             value: mockGeolocation,
             configurable: true,
+            writable: true, // Allow overwriting
         });
 
         // Default successful geolocation response
@@ -107,8 +125,11 @@ describe('EVModeToggle', () => {
     });
 
     it('renders in EV Mode when active', () => {
-        // Directly modify the shared state
-        mockStoreState.isEVModeActive = true;
+        // Mock useUI to return EV mode
+        mockUseUI.mockReturnValue({
+            activeMode: 'EV',
+            setMode: mockSetMode,
+        });
 
         render(<EVModeToggle />);
 
@@ -124,6 +145,12 @@ describe('EVModeToggle', () => {
     it('fetches location and sends dynamic coordinates when switching to EV Mode', async () => {
         const user = userEvent.setup();
 
+        // We need getState to return EV for the promise chain check
+        mockUseUI.getState.mockReturnValue({
+            activeMode: 'EV',
+            setMode: mockSetMode,
+        });
+
         render(<EVModeToggle />);
 
         const button = screen.getByRole('button');
@@ -131,8 +158,9 @@ describe('EVModeToggle', () => {
 
         // Wait for async operations
         await waitFor(() => {
-            expect(mockToggleEVMode).toHaveBeenCalled();
-            expect(mockSetTemplate).toHaveBeenCalledWith('ev-assistant');
+            expect(mockSetMode).toHaveBeenCalledWith('EV');
+            // mockSetTemplate is no longer called directly by the component
+
             expect(mockSetUserLocation).toHaveBeenCalledWith({
                 lat: 40.7128,
                 lng: -74.0060,
@@ -149,8 +177,11 @@ describe('EVModeToggle', () => {
     it('sends Road Atlanta coordinates when switching to Race Mode', async () => {
         const user = userEvent.setup();
 
-        // Directly modify the shared state
-        mockStoreState.isEVModeActive = true;
+        // Start in EV Mode
+        mockUseUI.mockReturnValue({
+            activeMode: 'EV',
+            setMode: mockSetMode,
+        });
 
         render(<EVModeToggle />);
 
@@ -158,8 +189,7 @@ describe('EVModeToggle', () => {
         await user.click(button);
 
         await waitFor(() => {
-            expect(mockToggleEVMode).toHaveBeenCalled();
-            expect(mockSetTemplate).toHaveBeenCalledWith('race-strategy');
+            expect(mockSetMode).toHaveBeenCalledWith('RACE');
             expect(mockClientSend).toHaveBeenCalledWith([{
                 text: expect.stringContaining('Road Atlanta Track (34.1458, -83.8177)')
             }]);
@@ -168,6 +198,12 @@ describe('EVModeToggle', () => {
 
     it('sends fallback message when location fetch fails', async () => {
         const user = userEvent.setup();
+
+        // We need getState to return EV for the promise chain check
+        mockUseUI.getState.mockReturnValue({
+            activeMode: 'EV',
+            setMode: mockSetMode,
+        });
 
         // Mock geolocation failure
         mockGeolocation.getCurrentPosition.mockImplementation((_, error) => {
@@ -184,10 +220,9 @@ describe('EVModeToggle', () => {
 
         // Wait for async operations
         await waitFor(() => {
-            expect(mockToggleEVMode).toHaveBeenCalled();
-            expect(mockSetTemplate).toHaveBeenCalledWith('ev-assistant');
+            expect(mockSetMode).toHaveBeenCalledWith('EV');
             expect(mockClientSend).toHaveBeenCalledWith([{
-                text: 'SYSTEM UPDATE: Switched to EV Mode. Exact location unavailable, using last known region. Prioritize range anxiety and charging stations.'
+                text: 'SYSTEM UPDATE: Switched to EV Mode. Using last known region.'
             }]);
         });
 

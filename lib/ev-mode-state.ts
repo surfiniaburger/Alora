@@ -74,6 +74,7 @@ interface EVModeState {
 
     // Actions
     toggleEVMode: () => void;
+    setEVMode: (isActive: boolean) => void;
     setVehicleProfile: (profile: EVVehicleProfile) => void;
     setNearbyStations: (stations: EVChargingStation[]) => void;
     selectStation: (station: EVChargingStation | null) => void;
@@ -101,10 +102,11 @@ export const useEVModeStore = create(
             userLocation: null,
             routePath: null,
 
-            // Toggle EV Mode on/off
+            // Actions
             toggleEVMode: () => set((state) => ({
                 isEVModeActive: !state.isEVModeActive
             })),
+            setEVMode: (isActive) => set({ isEVModeActive: isActive }),
 
             // Setters
             setVehicleProfile: (profile) => set({ vehicleProfile: profile }),

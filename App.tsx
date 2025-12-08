@@ -35,6 +35,7 @@ import { LiveAPIProvider, useLiveAPIContext } from './contexts/LiveAPIContext';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { Map3D, Map3DCameraProps } from './components/map-3d';
 import { useMapStore, useTelemetryStore, useUI, useTools, useSettings } from './lib/state';
+import { SoundManager } from './components/SoundManager';
 import { useEVModeStore } from './lib/ev-mode-state';
 import { MapController } from './lib/map-controller';
 import { useTelemetrySimulation } from './hooks/use-telemetry';
@@ -174,8 +175,8 @@ function InnerApp({
     if (map && maps3dLib && elevationLib) {
       mapController.current = new MapController({
         map,
-        maps3dLib,
-        elevationLib,
+        maps3dLib: maps3dLib as unknown as google.maps.Maps3DLibrary,
+        elevationLib: elevationLib as unknown as google.maps.ElevationLibrary,
       });
     }
     return () => {
@@ -331,6 +332,7 @@ function InnerApp({
 /**
  * Shell Component
  */
+
 function AppComponent() {
   const [map, setMap] = useState<google.maps.maps3d.Map3DElement | null>(null);
   const placesLib = useMapsLibrary('places');
@@ -357,6 +359,7 @@ function AppComponent() {
       geocoder={geocoder}
       padding={padding}
     >
+      <SoundManager />
       <InnerApp
         map={map}
         setMap={setMap}

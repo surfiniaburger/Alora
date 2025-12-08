@@ -3,15 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import { create } from 'zustand';
-import { itineraryPlannerTools } from './tools/itinerary-planner';
+import { raceTools } from './tools/race-tools';
 import { evAssistantTools } from './tools/ev-assistant-tools';
 
 export type Template = 'race-strategy' | 'ev-assistant';
 
 const toolsets: Record<Template, FunctionCall[]> = {
-  'race-strategy': itineraryPlannerTools,
+  'race-strategy': raceTools,
   'ev-assistant': evAssistantTools,
 };
+
+import { useEVModeStore } from './ev-mode-state';
 
 import {
   RACE_ENGINEER_PROMPT,
@@ -116,8 +118,7 @@ export const useSettings = create(
         model: state.model,
         voice: state.voice,
         isEasterEggMode: state.isEasterEggMode,
-        activePersona: state.activePersona,
-        template: state.template,
+        // template: state.template, // DO NOT PERSIST TEMPLATE (Causes startup desync)
         // Methods are not persisted, but we need to satisfy the type if strict
         // Alternatively, cast to unknown as any keyof State
       } as any),
@@ -149,7 +150,30 @@ export const useUI = create<{
   isTelemetryPanelOpen: true,
   toggleTelemetryPanel: () => set(state => ({ isTelemetryPanelOpen: !state.isTelemetryPanelOpen })),
   activeMode: 'RACE', // Default
-  setMode: (mode) => set({ activeMode: mode }),
+  setMode: (mode) => {
+    set({ activeMode: mode });
+
+    // Centralized Template Sync
+    // This replaces the useEffect in App.tsx
+    const targetTemplate: Template = mode === 'RACE' ? 'race-strategy' : 'ev-assistant';
+    const currentTemplate = useTools.getState().template;
+
+    if (currentTemplate !== targetTemplate) {
+      console.log(`[State] Auto-switching template to ${targetTemplate} for mode ${mode}`);
+      useTools.getState().setTemplate(targetTemplate);
+    }
+
+    // Sync EV Mode Store
+    const isEV = mode === 'EV';
+    if (useEVModeStore.getState().isEVModeActive !== isEV) {
+      console.log(`[State] Auto-switching EV Mode Store to ${isEV}`);
+      if (isEV) {
+        useEVModeStore.getState().setEVMode(true);
+      } else {
+        useEVModeStore.getState().setEVMode(false);
+      }
+    }
+  },
 }));
 
 /**
@@ -164,7 +188,7 @@ export const useTools = create<{
   template: Template;
   setTemplate: (template: Template) => void;
 }>(set => ({
-  tools: itineraryPlannerTools,
+  tools: raceTools,
   template: 'race-strategy',
   setTemplate: (template: Template) => {
     console.log('[State] useTools.setTemplate called:', template);
