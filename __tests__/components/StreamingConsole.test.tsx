@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import StreamingConsole from '../../components/streaming-console/StreamingConsole';
-import { useLogStore, useSettings, useTools, useUI } from '../../lib/state';
+import { useLogStore, useSettings, useTools, useUI, useAppStore } from '../../lib/state';
 import { useEVModeStore } from '../../lib/ev-mode-state';
 
 // Mock dependencies
@@ -15,6 +15,7 @@ vi.mock('../../lib/state', () => ({
     useSettings: vi.fn(),
     useTools: vi.fn(),
     useUI: vi.fn(),
+    useAppStore: vi.fn(),
 }));
 
 vi.mock('../../lib/ev-mode-state', () => ({
@@ -108,16 +109,19 @@ describe('StreamingConsole', async () => {
             tools: [],
         });
         (useUI as any).mockReturnValue({
-            showSystemMessages: true,
+            showSystemMessages: false,
         });
         (useEVModeStore as any).mockReturnValue({
             isEVModeActive: false,
+        });
+        (useAppStore as any).mockReturnValue({
+            mode: 'race',
         });
     });
 
     it('renders nothing when there are no logs', () => {
         const { container } = renderWithProvider(<StreamingConsole />);
-        expect(container.firstChild.hasChildNodes()).toBe(false);
+        expect(container.firstChild).toBeEmptyDOMElement();
     });
 
     it('renders the latest user message', async () => {

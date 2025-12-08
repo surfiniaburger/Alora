@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/lib/state';
 import { useLiveAPIContext } from '@/contexts/LiveAPIContext';
 import Webcam from 'react-webcam';
+import './VideoInspector.css';
 
 /**
  * Video Inspector Component
@@ -82,19 +83,7 @@ export default function VideoInspector() {
     if (!isActive) return null;
 
     return (
-        <div className="inspector-overlay" style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            zIndex: 5, // Below UI overlay (10) but above map (0)
-            pointerEvents: 'none', // Let clicks pass through
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'black'
-        }}>
+        <div className="inspector-overlay">
             <Webcam
                 ref={webcamRef}
                 audio={false}
@@ -102,57 +91,23 @@ export default function VideoInspector() {
                 videoConstraints={constraints}
                 onUserMedia={() => setIsCameraActive(true)}
                 onUserMediaError={handleUserMediaError}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    opacity: 0.8 // Slightly transparent to blend or just show clearly
-                }}
+                className="inspector-webcam"
             />
 
             {/* Inspector Reticle UI */}
-            <div className="inspector-ui" style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pointerEvents: 'none'
-            }}>
+            <div className="inspector-ui">
                 {/* Reticle */}
-                <div style={{
-                    width: '200px',
-                    height: '200px',
-                    border: '2px solid rgba(0, 255, 255, 0.5)',
-                    borderRadius: '10px',
-                    boxShadow: '0 0 20px rgba(0, 255, 255, 0.2)',
-                    position: 'relative'
-                }}>
+                <div className="inspector-reticle">
                     {/* Corner markers */}
-                    <div style={{ position: 'absolute', top: -2, left: -2, width: 20, height: 20, borderTop: '4px solid cyan', borderLeft: '4px solid cyan' }} />
-                    <div style={{ position: 'absolute', top: -2, right: -2, width: 20, height: 20, borderTop: '4px solid cyan', borderRight: '4px solid cyan' }} />
-                    <div style={{ position: 'absolute', bottom: -2, left: -2, width: 20, height: 20, borderBottom: '4px solid cyan', borderLeft: '4px solid cyan' }} />
-                    <div style={{ position: 'absolute', bottom: -2, right: -2, width: 20, height: 20, borderBottom: '4px solid cyan', borderRight: '4px solid cyan' }} />
+                    <div className="inspector-corner top-left" />
+                    <div className="inspector-corner top-right" />
+                    <div className="inspector-corner bottom-left" />
+                    <div className="inspector-corner bottom-right" />
                 </div>
 
                 {/* Status Text */}
-                <div style={{
-                    marginTop: '20px',
-                    backgroundColor: 'rgba(0,0,0,0.6)',
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    color: 'cyan',
-                    fontFamily: 'monospace',
-                    fontSize: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px', animation: 'pulse 2s infinite' }}>videocam</span>
+                <div className="inspector-status">
+                    <span className="material-symbols-outlined inspector-icon">videocam</span>
                     AI ANALYZING VIDEO FEED
                 </div>
             </div>

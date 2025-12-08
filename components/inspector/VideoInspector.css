@@ -1,0 +1,112 @@
+/* VideoInspector Styles */
+
+.inspector-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    /* Below UI overlay (10) but above map (0) */
+    pointer-events: none;
+    /* Let clicks pass through */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+}
+
+.inspector-webcam {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    /* Slightly transparent to blend or just show clearly */
+}
+
+.inspector-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.inspector-reticle {
+    width: 200px;
+    height: 200px;
+    border: 2px solid rgba(0, 255, 255, 0.5);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    position: relative;
+}
+
+/* Corner markers */
+.inspector-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: cyan;
+    border-style: solid;
+}
+
+.inspector-corner.top-left {
+    top: -2px;
+    left: -2px;
+    border-width: 4px 0 0 4px;
+}
+
+.inspector-corner.top-right {
+    top: -2px;
+    right: -2px;
+    border-width: 4px 4px 0 0;
+}
+
+.inspector-corner.bottom-left {
+    bottom: -2px;
+    left: -2px;
+    border-width: 0 0 4px 4px;
+}
+
+.inspector-corner.bottom-right {
+    bottom: -2px;
+    right: -2px;
+    border-width: 0 4px 4px 0;
+}
+
+.inspector-status {
+    margin-top: 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: cyan;
+    font-family: monospace;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.inspector-icon {
+    font-size: 18px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
