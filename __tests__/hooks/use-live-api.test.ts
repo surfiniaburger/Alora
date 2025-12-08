@@ -6,12 +6,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useLiveApi } from '../../hooks/use-live-api';
-import { useSettings, useLogStore, useMapStore, useTools } from '../../lib/state';
+import { useSettings, useLogStore, useMapStore, useTools } from '@/lib/state';
 import { GenAILiveClient } from '../../lib/genai-live-client';
 import { AudioStreamer } from '../../lib/audio-streamer';
 
 // Mock dependencies
-vi.mock('../../lib/state', () => ({
+vi.mock('@/lib/state', () => ({
     useSettings: vi.fn(),
     useLogStore: {
         getState: vi.fn(),
