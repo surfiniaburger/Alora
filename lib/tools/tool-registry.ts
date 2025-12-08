@@ -34,6 +34,9 @@ import type { ToolImplementation, ToolContext } from './tool-types';
 export type { ToolImplementation, ToolContext };
 import { evToolRegistry } from './ev-tool-registry';
 
+import { vehicleTools } from './vehicle-tools';
+import { controlToolsImplementation } from './control-tools';
+
 /**
  * Tool implementation for retrieving live race telemetry.
  */
@@ -251,6 +254,8 @@ export const raceToolRegistry: Record<string, ToolImplementation> = {
   mapsGrounding,
   frameEstablishingShot,
   frameLocations,
+  ...vehicleTools,
+  ...controlToolsImplementation,
 };
 
 /**

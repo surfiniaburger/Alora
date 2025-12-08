@@ -16,7 +16,7 @@ import { useLiveAPIContext } from '@/contexts/LiveAPIContext';
 
 const AVAILABLE_MODELS = [
   'gemini-2.5-flash-native-audio-preview-09-2025',
-  'gemini-2.5-flash-native-audio-latest', 
+  'gemini-2.5-flash-native-audio-latest',
   'gemini-live-2.5-flash-preview',
   'gemini-2.0-flash-live-001'
 ];

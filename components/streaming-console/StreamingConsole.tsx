@@ -132,39 +132,9 @@ export default function StreamingConsole() {
     }
   }, [isVisible]);
 
-  // Set the configuration for the Live API (Keep existing logic)
-  useEffect(() => {
-    const enabledTools = tools
-      .filter(tool => tool.isEnabled)
-      .map(tool => ({
-        functionDeclarations: [
-          {
-            name: tool.name,
-            description: tool.description,
-            parameters: tool.parameters,
-          },
-        ],
-      }));
-    const config: any = {
-      responseModalities: [Modality.AUDIO],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: {
-            voiceName: voice,
-          },
-        },
-      },
-      inputAudioTranscription: {},
-      outputAudioTranscription: {},
-      systemInstruction: {
-        parts: [{ text: systemPrompt }],
-      },
-      tools: enabledTools,
-      thinkingConfig: { thinkingBudget: 0 },
-    };
+  // Configuration is now handled centrally in App.tsx (InnerApp)
+  // We no longer set config here to avoid race conditions.
 
-    setConfig(config);
-  }, [setConfig, systemPrompt, tools, voice]);
 
   // Handle Transcriptions
   const addTurn = useLogStore(state => state.addTurn);

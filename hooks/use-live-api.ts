@@ -30,7 +30,7 @@ import { LiveConnectConfig, Modality, LiveServerToolCall } from '@google/genai';
 import { AudioStreamer } from '../lib/audio-streamer';
 import { audioContext } from '../lib/utils';
 import VolMeterWorket from '../lib/worklets/vol-meter';
-import { useLogStore, useMapStore, useSettings } from '@/lib/state';
+import { useLogStore, useMapStore, useSettings, useTools } from '@/lib/state';
 import { GenerateContentResponse, GroundingChunk } from '@google/genai';
 import { ToolContext, getToolRegistry } from '@/lib/tools/tool-registry';
 
@@ -115,6 +115,64 @@ export function useLiveApi({
       });
     }
   }, []);
+
+  // Sync tools when they change in the store by Reconnecting
+  // The API requires a fresh session to update tools.
+  const currentTools = useTools(state => state.tools);
+
+  // Track the tools currently active in the session to avoid unnecessary reconnects
+  const [activeSessionTools, setActiveSessionTools] = useState<any[]>([]);
+
+  useEffect(() => {
+    // If not connected, or if we have no tools, ignore.
+    if (!connected || !currentTools) return;
+
+    // 1. Initial Sync: If we haven't tracked any tools yet, just populate the state.
+    // We don't need to reconnect because the initial connection (just established) already used 'config.tools'.
+    if (activeSessionTools.length === 0) {
+      setActiveSessionTools(currentTools);
+      return;
+    }
+
+    // 2. Change Detection: Check if tools have changed compared to what is active
+    const toolsChanged = JSON.stringify(currentTools.map(t => t.name)) !== JSON.stringify(activeSessionTools.map(t => t.name));
+
+    if (toolsChanged) {
+      console.log('[useLiveApi] Tools changed context. Reconnecting session...', currentTools.map(t => t.name));
+
+      // UPDATE STATE IMMEDIATELY to prevent loop
+      setActiveSessionTools(currentTools);
+
+      const restartSession = async () => {
+        // 1. Update the config state so next connect uses it
+        const newConfig = {
+          ...config,
+          tools: [{
+            functionDeclarations: currentTools.map(tool => ({
+              name: tool.name,
+              description: tool.description,
+              parameters: tool.parameters,
+            }))
+          }]
+        };
+        setConfig(newConfig);
+
+        // 2. Disconnect existing
+        client.disconnect();
+
+        // 3. Wait for full disconnect (longer buffer for stability)
+        await new Promise(r => setTimeout(r, 800));
+
+        // 4. Reconnect
+        await client.connect(newConfig);
+
+        // 5. Inform user
+        client.sendRealtimeText("SYSTEM: Tools updated to match new mode.");
+      };
+
+      restartSession();
+    }
+  }, [connected, client, currentTools]); // Removed 'config' to avoid circular dependency
 
   // This effect sets up the main event listeners for the GenAILiveClient.
   useEffect(() => {
@@ -224,18 +282,28 @@ export function useLiveApi({
             isFinal: true,
           });
 
+          console.log(`[LiveAPI] Processing tool call: ${fc.name}`);
+          console.log(`[LiveAPI] Tool Arguments:`, JSON.stringify(fc.args));
 
           let toolResponse: GenerateContentResponse | string = 'ok';
           try {
             // Get the appropriate tool registry based on current template
             const template = useSettings.getState().template;
+            console.log(`[LiveAPI] Current template: ${template}`);
+
             const activeToolRegistry = getToolRegistry(template);
+            console.log(`[LiveAPI] Active registry keys: ${Object.keys(activeToolRegistry).join(', ')}`);
+
             const toolImplementation = activeToolRegistry[fc.name];
+
             if (toolImplementation) {
+              console.log(`[LiveAPI] Found implementation for ${fc.name}, executing...`);
               toolResponse = await toolImplementation(fc.args, toolContext);
+              console.log(`[LiveAPI] Execution complete for ${fc.name}`);
             } else {
-              toolResponse = `Unknown tool called: ${fc.name}.`;
-              console.warn(toolResponse);
+              const msg = `Unknown tool called: ${fc.name}. Available tools: ${Object.keys(activeToolRegistry).join(', ')}`;
+              toolResponse = msg;
+              console.warn(`[LiveAPI] ${msg}`);
             }
 
 
@@ -308,6 +376,9 @@ export function useLiveApi({
     }
     useLogStore.getState().clearTurns();
     useMapStore.getState().clearMarkers();
+    if (audioStreamerRef.current) {
+      audioStreamerRef.current.resume();
+    }
     client.disconnect();
     await client.connect(config);
   }, [client, config]);

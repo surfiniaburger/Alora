@@ -1,0 +1,84 @@
+name: iOS Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Run Tests
+      run: npm test -- --run
+
+    - name: Build Web Assets
+      run: npm run build
+
+    - name: Sync Capacitor
+      run: npx cap sync ios
+
+    - name: Setup Ruby (for CocoaPods)
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
+
+    - name: Install Pods
+      run: |
+        cd ios/App
+        pod install
+
+    # NOTE: To produce a signed .ipa for the App Store (or TestFlight), you must configure signing.
+    # This example builds an unsigned archive for verification. 
+    # To sign, you need to import your distribution certificate and provisioning profile.
+    # See: https://docs.github.com/en/actions/deployment/deploying-xcode-applications/installing-an-apple-certificate-on-macos-runners-for-xcode-development
+    - name: Build iOS App (Archive)
+      run: |
+        cd ios/App
+        xcodebuild -workspace App.xcworkspace \
+                   -scheme App \
+                   -sdk iphoneos \
+                   -configuration Release \
+                   -archivePath $PWD/build/App.xcarchive \
+                   clean archive \
+                   CODE_SIGN_IDENTITY="" \
+                   CODE_SIGNING_REQUIRED=NO \
+                   CODE_SIGNING_ALLOWED=NO
+
+    - name: Export IPA (Payload)
+      run: |
+        cd ios/App
+        mkdir -p build/Payload
+        mv build/App.xcarchive/Products/Applications/App.app build/Payload/
+        cd build
+        zip -r App.ipa Payload
+
+    - name: Upload IPA to Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ios/App/build/App.ipa
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload IPA as Artifact
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/upload-artifact@v4
+      with:
+        name: alora-ios-ipa
+        path: ios/App/build/App.ipa

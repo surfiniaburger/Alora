@@ -3,15 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import { create } from 'zustand';
-import { itineraryPlannerTools } from './tools/itinerary-planner';
+import { raceTools } from './tools/race-tools';
 import { evAssistantTools } from './tools/ev-assistant-tools';
 
 export type Template = 'race-strategy' | 'ev-assistant';
 
 const toolsets: Record<Template, FunctionCall[]> = {
-  'race-strategy': itineraryPlannerTools,
+  'race-strategy': raceTools,
   'ev-assistant': evAssistantTools,
 };
+
+import { useEVModeStore } from './ev-mode-state';
 
 import {
   RACE_ENGINEER_PROMPT,
@@ -49,65 +51,87 @@ export const personas: Record<string, { prompt: string; voice: string }> = {
 /**
  * Settings
  */
-export const useSettings = create<{
-  systemPrompt: string;
-  model: string;
-  voice: string;
-  isEasterEggMode: boolean;
-  activePersona: string;
-  template: Template;
-  setSystemPrompt: (prompt: string) => void;
-  setModel: (model: string) => void;
-  setVoice: (voice: string) => void;
-  setPersona: (persona: string) => void;
-  setTemplate: (template: Template) => void;
-  activateEasterEggMode: () => void;
-}>(set => ({
-  systemPrompt: systemPrompts['race-strategy'],
-  model: DEFAULT_LIVE_API_MODEL,
-  voice: DEFAULT_VOICE,
-  isEasterEggMode: false,
-  activePersona: SCAVENGER_HUNT_PERSONA,
-  template: 'race-strategy',
-  setSystemPrompt: prompt => set({ systemPrompt: prompt }),
-  setModel: model => set({ model }),
-  setVoice: voice => set({ voice }),
-  setPersona: (persona: string) => {
-    if (personas[persona]) {
-      set({
-        activePersona: persona,
-        systemPrompt: personas[persona].prompt,
-        voice: personas[persona].voice,
-      });
+import { persist } from 'zustand/middleware';
+
+export const useSettings = create(
+  persist<{
+    systemPrompt: string;
+    model: string;
+    voice: string;
+    isEasterEggMode: boolean;
+    activePersona: string;
+    template: Template;
+    setSystemPrompt: (prompt: string) => void;
+    setModel: (model: string) => void;
+    setVoice: (voice: string) => void;
+    setPersona: (persona: string) => void;
+    setTemplate: (template: Template) => void;
+    activateEasterEggMode: () => void;
+  }>(
+    (set) => ({
+      systemPrompt: systemPrompts['race-strategy'],
+      model: DEFAULT_LIVE_API_MODEL,
+      voice: DEFAULT_VOICE,
+      isEasterEggMode: false,
+      activePersona: SCAVENGER_HUNT_PERSONA,
+      template: 'race-strategy',
+      setSystemPrompt: (prompt) => set({ systemPrompt: prompt }),
+      setModel: (model) => set({ model }),
+      setVoice: (voice) => set({ voice }),
+      setPersona: (persona: string) => {
+        if (personas[persona]) {
+          set({
+            activePersona: persona,
+            systemPrompt: personas[persona].prompt,
+            voice: personas[persona].voice,
+          });
+        }
+      },
+      setTemplate: (template: Template) => {
+        console.log('[Settings] setTemplate called:', template);
+        console.trace('[Settings] setTemplate trace');
+        set({
+          template,
+          systemPrompt: systemPrompts[template],
+        });
+      },
+      activateEasterEggMode: () => {
+        set((state) => {
+          if (!state.isEasterEggMode) {
+            const persona = SCAVENGER_HUNT_PERSONA;
+            return {
+              isEasterEggMode: true,
+              activePersona: persona,
+              systemPrompt: personas[persona].prompt,
+              voice: personas[persona].voice,
+              model: 'gemini-live-2.5-flash-preview',
+            };
+          }
+          return {};
+        });
+      },
+    }),
+    {
+      name: 'alora-settings',
+      partialize: (state) => ({
+        systemPrompt: state.systemPrompt,
+        model: state.model,
+        voice: state.voice,
+        isEasterEggMode: state.isEasterEggMode,
+        // template: state.template, // DO NOT PERSIST TEMPLATE (Causes startup desync)
+        // Methods are not persisted, but we need to satisfy the type if strict
+        // Alternatively, cast to unknown as any keyof State
+      } as any),
     }
-  },
-  setTemplate: (template: Template) => {
-    console.log('[Settings] setTemplate called:', template);
-    set({
-      template,
-      systemPrompt: systemPrompts[template],
-    });
-  },
-  activateEasterEggMode: () => {
-    set(state => {
-      if (!state.isEasterEggMode) {
-        const persona = SCAVENGER_HUNT_PERSONA;
-        return {
-          isEasterEggMode: true,
-          activePersona: persona,
-          systemPrompt: personas[persona].prompt,
-          voice: personas[persona].voice,
-          model: 'gemini-live-2.5-flash-preview', // gemini-2.5-flash-preview-native-audio-dialog
-        };
-      }
-      return {};
-    });
-  },
-}));
+  )
+);
 
 /**
  * UI
  */
+// App Mode Definition
+export type AppMode = 'RACE' | 'EV' | 'INSPECTOR';
+
 export const useUI = create<{
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
@@ -115,6 +139,8 @@ export const useUI = create<{
   toggleShowSystemMessages: () => void;
   isTelemetryPanelOpen: boolean;
   toggleTelemetryPanel: () => void;
+  activeMode: AppMode;
+  setMode: (mode: AppMode) => void;
 }>(set => ({
   isSidebarOpen: false,
   toggleSidebar: () => set(state => ({ isSidebarOpen: !state.isSidebarOpen })),
@@ -123,6 +149,31 @@ export const useUI = create<{
     set(state => ({ showSystemMessages: !state.showSystemMessages })),
   isTelemetryPanelOpen: true,
   toggleTelemetryPanel: () => set(state => ({ isTelemetryPanelOpen: !state.isTelemetryPanelOpen })),
+  activeMode: 'RACE', // Default
+  setMode: (mode) => {
+    set({ activeMode: mode });
+
+    // Centralized Template Sync
+    // This replaces the useEffect in App.tsx
+    const targetTemplate: Template = mode === 'RACE' ? 'race-strategy' : 'ev-assistant';
+    const currentTemplate = useTools.getState().template;
+
+    if (currentTemplate !== targetTemplate) {
+      console.log(`[State] Auto-switching template to ${targetTemplate} for mode ${mode}`);
+      useTools.getState().setTemplate(targetTemplate);
+    }
+
+    // Sync EV Mode Store
+    const isEV = mode === 'EV';
+    if (useEVModeStore.getState().isEVModeActive !== isEV) {
+      console.log(`[State] Auto-switching EV Mode Store to ${isEV}`);
+      if (isEV) {
+        useEVModeStore.getState().setEVMode(true);
+      } else {
+        useEVModeStore.getState().setEVMode(false);
+      }
+    }
+  },
 }));
 
 /**
@@ -137,7 +188,7 @@ export const useTools = create<{
   template: Template;
   setTemplate: (template: Template) => void;
 }>(set => ({
-  tools: itineraryPlannerTools,
+  tools: raceTools,
   template: 'race-strategy',
   setTemplate: (template: Template) => {
     console.log('[State] useTools.setTemplate called:', template);

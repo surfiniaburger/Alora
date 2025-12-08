@@ -6,12 +6,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useLiveApi } from '../../hooks/use-live-api';
-import { useSettings, useLogStore, useMapStore } from '../../lib/state';
+import { useSettings, useLogStore, useMapStore, useTools } from '@/lib/state';
 import { GenAILiveClient } from '../../lib/genai-live-client';
 import { AudioStreamer } from '../../lib/audio-streamer';
 
 // Mock dependencies
-vi.mock('../../lib/state', () => ({
+vi.mock('@/lib/state', () => ({
     useSettings: vi.fn(),
     useLogStore: {
         getState: vi.fn(),
@@ -19,6 +19,7 @@ vi.mock('../../lib/state', () => ({
     useMapStore: {
         getState: vi.fn(),
     },
+    useTools: vi.fn(),
 }));
 
 vi.mock('../../lib/genai-live-client', () => {
@@ -43,6 +44,7 @@ vi.mock('../../lib/audio-streamer', () => {
                 addWorklet: vi.fn().mockResolvedValue(undefined),
                 addPCM16: vi.fn(),
                 stop: vi.fn(),
+                resume: vi.fn(),
             };
         }),
     };
@@ -96,6 +98,8 @@ describe('useLiveApi', () => {
             clearMarkers: vi.fn(),
         };
         (useMapStore as any).getState.mockReturnValue(mockMapStore);
+
+        (useTools as any).mockReturnValue([]);
     });
 
     it('instantiates client with correct config', async () => {
