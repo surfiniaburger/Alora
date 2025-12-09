@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname, 'dist'), {
 
 // Handle SPA routing - serve index.html only for HTML requests
 // This prevents serving HTML for missing assets (which causes MIME type errors)
-app.get('*', (req, res, next) => {
+app.get(/.*/, (req, res, next) => {
     if (req.accepts('html')) {
         res.sendFile(path.join(__dirname, 'dist', 'index.html'));
     } else {
