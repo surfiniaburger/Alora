@@ -14,7 +14,7 @@
 ## 📥 Installation & Releases
 
 ### 🥽 Meta Quest (XR Experience)
-**[Click here to try Alora on Meta Quest](https://www.meta.com/s/6OFmDJCVP)**
+**[Try Alora on Meta Quest](https://www.meta.com/s/6OFmDJCVP)**
 > *Includes full Multimodal Live API integration and 3D Map Grounding.*
 
 ### 🤖 Android
