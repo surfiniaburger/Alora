@@ -29,10 +29,11 @@ app.use(express.static(path.join(__dirname, 'dist'), {
 // Handle SPA routing - serve index.html only for HTML requests
 // This prevents serving HTML for missing assets (which causes MIME type errors)
 app.get(/.*/, (req, res, next) => {
-    if (req.accepts('html')) {
+    // Only serve index.html for navigation requests (no extension) that accept HTML.
+    if (req.accepts('html') && !path.extname(req.path)) {
         res.sendFile(path.join(__dirname, 'dist', 'index.html'));
     } else {
-        next(); // Use default 404 handler for non-HTML requests
+        next();
     }
 });
 
