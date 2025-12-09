@@ -6,7 +6,26 @@
 [![ADK](https://img.shields.io/badge/Google-ADK-34A853)](https://developers.google.com/adk)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react)](https://react.dev)
 
+
 > **Mobile Development**: Android app development is ongoing at [mooncake](https://github.com/surfiniaburger/mooncake)
+
+---
+
+## 📥 Installation & Releases
+
+### 🥽 Meta Quest (XR Experience)
+**[Click here to try Alora on Meta Quest](https://www.meta.com/s/6OFmDJCVP)**
+> *Includes full Multimodal Live API integration and 3D Map Grounding.*
+
+### 🤖 Android
+**[Download Latest APK](https://github.com/surfiniaburger/Alora/releases)**
+> *Automated Release Pipeline*: Every push to `main` triggers a GitHub Action that builds, signs, and releases a production-ready APK.
+> - **Build**: Capacitor 7.4 + Vite
+> - **CI/CD**: GitHub Actions -> Gradle -> Signed APK
+
+### 🍎 iOS
+**[View iOS Builds](https://github.com/surfiniaburger/Alora/releases)**
+> *Cross-Platform Proof of Concept*: Successfully built for iOS 18.2 via Capacitor.
 
 ---
 
