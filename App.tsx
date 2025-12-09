@@ -142,7 +142,7 @@ function InnerApp({
       }));
 
     const config: LiveConnectConfig = {
-      responseModalities: ['AUDIO'] as any,
+      responseModalities: [Modality.AUDIO],
       speechConfig: {
         voiceConfig: {
           prebuiltVoiceConfig: {
