@@ -30,7 +30,7 @@ We live in an era where cars are marvels of engineering, yet basic failures—li
 
 **The User Frustration is Real:**
 - **The Fear of the Unknown**: Is that new vibration normal? What does that amber light actually *mean*? We feel helpless when our car speaks a language we don't understand.
-- **The Cognitive Overload**: In high-stakes environments like racing, a Strategist has **10 to 15 milliseconds** to make a decision that wins or loses a championship. A human simply cannot process gigabytes of telemetry, tire degradation models, and weather patterns in that time window.
+- **The Cognitive Overload**: In high-stakes environments like racing, a Strategist has **split-second** windows to make a decision that wins or loses a championship. A human simply cannot process gigabytes of telemetry, tire degradation models, and weather patterns in that time window.
 - **The "Range Anxiety" Paralysis**: For EV owners, the freedom of the road is replaced by the constant, nagging math of battery percentages and charger availability.
 
 **Our Mission:**
@@ -55,13 +55,13 @@ We realized that "Range Anxiety" isn't about the car's range—it's about the **
 - **"Am I driving too fast?"** → Alora analyzes your real-time consumption vs. the destination's elevation profile and gently suggests a safer speed.
 It replaces anxiety with the confidence of a perfectly planned itinerary.
 
-#### 🏎️ Race Mode: The Digital Stratagist
+#### 🏎️ Race Mode: The Digital Strategist
 *The unfair advantage.*
 
 On the track, the difference between 1st and 2nd is a rounding error. Alora ingests raw telemetry at 60Hz. It runs **Monte Carlo simulations** on tire degradation and fuel consumption in real-time.
 - **The Pain**: A human engineer scans 10 screens, trying to guess if a "Safety Car" window is open.
 - **The Alora Fix**: "Box now. You have an 87% chance of undercutting the rival on Turn 4."
-It is the calm, mathematical certainty in the chaos of the race.
+It is calm, mathematical certainty in the chaos of the race.
 
 ---
 
