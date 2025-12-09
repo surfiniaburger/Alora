@@ -18,8 +18,11 @@
 > *Includes full Multimodal Live API integration and 3D Map Grounding.*
 
 ### 🤖 Android
-**[Download Latest APK](https://github.com/surfiniaburger/Alora/releases)**
+**[Download Latest APK (GitHub)](https://github.com/surfiniaburger/Alora/releases)**
 > *Automated Release Pipeline*: Every push to `main` triggers a GitHub Action that builds, signs, and releases a production-ready APK.
+
+**[Join Google Play Internal Test](https://play.google.com/apps/internaltest/4701654233657900497)**
+> *Requires email invitation. Contact team for access.*
 > - **Build**: Capacitor 7.4 + Vite
 > - **CI/CD**: GitHub Actions -> Gradle -> Signed APK
 
