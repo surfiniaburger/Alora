@@ -40,7 +40,7 @@ import { useEVModeStore } from './lib/ev-mode-state';
 import { MapController } from './lib/map-controller';
 import { useTelemetrySimulation } from './hooks/use-telemetry';
 import { useGeolocation } from './hooks/use-geolocation';
-import { LiveConnectConfig } from '@google/genai';
+import { LiveConnectConfig, Modality } from '@google/genai';
 
 const API_KEY = import.meta.env.VITE_API_KEY;
 if (!API_KEY) {
