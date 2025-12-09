@@ -27,3 +27,5 @@ place.md
 GSAP_ANIMATION_RECOMMENDATIONS.md
 # Keystore
 *.keystore
+cloudbuild.yaml
+Dockerfile
