@@ -26,10 +26,14 @@ app.use(express.static(path.join(__dirname, 'dist'), {
     }
 }));
 
-// Handle SPA routing - all routes serve index.html
-// Using regex pattern for Express v5 compatibility
-app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// Handle SPA routing - serve index.html only for HTML requests
+// This prevents serving HTML for missing assets (which causes MIME type errors)
+app.get('*', (req, res, next) => {
+    if (req.accepts('html')) {
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    } else {
+        next(); // Use default 404 handler for non-HTML requests
+    }
 });
 
 app.listen(port, '0.0.0.0', () => {
