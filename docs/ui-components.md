@@ -17,7 +17,6 @@ The main application component that orchestrates all UI elements.
 ```
 LiveAPIProvider
 ├── ErrorScreen (full-screen overlay)
-├── EVModeToggle (floating toggle)
 ├── DebugPanel (conditional overlay)
 ├── Sidebar (drawer)
 ├── PopUp (welcome modal)
@@ -224,20 +223,7 @@ interface DebugPanelProps {
 
 ---
 
-### 7. EVModeToggle
-
-**Location:** `components/EVModeToggle.tsx`  
-**Purpose:** Toggle between Race mode and EV Charging mode
-
-**Position:** Top-left floating button
-
-**States:**
-- **Race Mode**: Default telemetry and race tools
-- **EV Mode**: Electric vehicle charging station finder
-
----
-
-### 8. PopUp (Welcome Screen)
+### 7. PopUp (Welcome Screen)
 
 **Location:** `components/PopUp.tsx`  
 **Purpose:** Initial welcome modal with instructions
@@ -476,7 +462,6 @@ components/
 ├── DebugPanel.tsx
 ├── Sidebar.tsx
 ├── ErrorScreen.tsx
-├── EVModeToggle.tsx
 └── PopUp.tsx
 ```
 

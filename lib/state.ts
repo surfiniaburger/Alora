@@ -1,27 +1,14 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
-*/
 import { create } from 'zustand';
-import { itineraryPlannerTools } from './tools/itinerary-planner';
-import { evAssistantTools } from './tools/ev-assistant-tools';
 
-export type Template = 'race-strategy' | 'ev-assistant';
-
-const toolsets: Record<Template, FunctionCall[]> = {
-  'race-strategy': itineraryPlannerTools,
-  'ev-assistant': evAssistantTools,
-};
+export type Template = 'unified'; // Deprecated type kept for compatibility if needed elsewhere
 
 import {
-  RACE_ENGINEER_PROMPT,
+  ALORA_PROMPT,
   SCAVENGER_HUNT_PROMPT,
-  EV_ASSISTANT_PROMPT,
 } from './constants.ts';
-const systemPrompts: Record<Template, string> = {
-  'race-strategy': RACE_ENGINEER_PROMPT,
-  'ev-assistant': EV_ASSISTANT_PROMPT,
-};
+
+// Unified prompt for the main persona
+const SYSTEM_PROMPT = ALORA_PROMPT;
 
 import { DEFAULT_LIVE_API_MODEL, DEFAULT_VOICE } from './constants';
 import {
@@ -55,20 +42,17 @@ export const useSettings = create<{
   voice: string;
   isEasterEggMode: boolean;
   activePersona: string;
-  template: Template;
   setSystemPrompt: (prompt: string) => void;
   setModel: (model: string) => void;
   setVoice: (voice: string) => void;
   setPersona: (persona: string) => void;
-  setTemplate: (template: Template) => void;
   activateEasterEggMode: () => void;
 }>(set => ({
-  systemPrompt: systemPrompts['race-strategy'],
+  systemPrompt: SYSTEM_PROMPT,
   model: DEFAULT_LIVE_API_MODEL,
   voice: DEFAULT_VOICE,
   isEasterEggMode: false,
-  activePersona: SCAVENGER_HUNT_PERSONA,
-  template: 'race-strategy',
+  activePersona: 'Alora',
   setSystemPrompt: prompt => set({ systemPrompt: prompt }),
   setModel: model => set({ model }),
   setVoice: voice => set({ voice }),
@@ -79,14 +63,14 @@ export const useSettings = create<{
         systemPrompt: personas[persona].prompt,
         voice: personas[persona].voice,
       });
+    } else {
+      // Revert to default Alora
+      set({
+        activePersona: 'Alora',
+        systemPrompt: SYSTEM_PROMPT,
+        voice: DEFAULT_VOICE,
+      });
     }
-  },
-  setTemplate: (template: Template) => {
-    console.log('[Settings] setTemplate called:', template);
-    set({
-      template,
-      systemPrompt: systemPrompts[template],
-    });
   },
   activateEasterEggMode: () => {
     set(state => {
@@ -97,7 +81,7 @@ export const useSettings = create<{
           activePersona: persona,
           systemPrompt: personas[persona].prompt,
           voice: personas[persona].voice,
-          model: 'gemini-live-2.5-flash-preview', // gemini-2.5-flash-preview-native-audio-dialog
+          model: 'gemini-live-2.5-flash-preview',
         };
       }
       return {};
@@ -108,6 +92,8 @@ export const useSettings = create<{
 /**
  * UI
  */
+export type AppMode = 'RACE' | 'EV' | 'STANDARD';
+
 export const useUI = create<{
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
@@ -115,6 +101,8 @@ export const useUI = create<{
   toggleShowSystemMessages: () => void;
   isTelemetryPanelOpen: boolean;
   toggleTelemetryPanel: () => void;
+  appMode: AppMode;
+  setAppMode: (mode: AppMode) => void;
 }>(set => ({
   isSidebarOpen: false,
   toggleSidebar: () => set(state => ({ isSidebarOpen: !state.isSidebarOpen })),
@@ -123,28 +111,14 @@ export const useUI = create<{
     set(state => ({ showSystemMessages: !state.showSystemMessages })),
   isTelemetryPanelOpen: true,
   toggleTelemetryPanel: () => set(state => ({ isTelemetryPanelOpen: !state.isTelemetryPanelOpen })),
+  appMode: 'RACE', // Default to Race mode as implied by telemetry panel being open
+  setAppMode: (mode) => set({ appMode: mode }),
 }));
 
-/**
- * Tools
- */
-import { FunctionCall } from './tools/tool-types';
-
-
-
+// Unused but keeping for reference if needed later, though tools are now largely static/unified
 export const useTools = create<{
-  tools: FunctionCall[];
-  template: Template;
-  setTemplate: (template: Template) => void;
+  // tools: FunctionCall[]; // Deprecated, we use tool-registry directly now
 }>(set => ({
-  tools: itineraryPlannerTools,
-  template: 'race-strategy',
-  setTemplate: (template: Template) => {
-    console.log('[State] useTools.setTemplate called:', template);
-    set({ tools: toolsets[template], template });
-    // Sync with useSettings
-    useSettings.getState().setTemplate(template);
-  },
 }));
 
 /**

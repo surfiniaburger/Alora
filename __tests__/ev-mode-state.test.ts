@@ -26,39 +26,11 @@ describe('EV Mode State Management', () => {
         const { result } = renderHook(() => useEVModeStore());
         act(() => {
             result.current.clearEVData();
-            if (result.current.isEVModeActive) {
-                result.current.toggleEVMode();
-            }
+            result.current.clearEVData();
         });
     });
 
-    describe('Mode Toggling', () => {
-        it('should start with EV mode inactive', () => {
-            const { result } = renderHook(() => useEVModeStore());
-            expect(result.current.isEVModeActive).toBe(false);
-        });
-
-        it('should toggle EV mode on', () => {
-            const { result } = renderHook(() => useEVModeStore());
-
-            act(() => {
-                result.current.toggleEVMode();
-            });
-
-            expect(result.current.isEVModeActive).toBe(true);
-        });
-
-        it('should toggle EV mode off', () => {
-            const { result } = renderHook(() => useEVModeStore());
-
-            act(() => {
-                result.current.toggleEVMode();
-                result.current.toggleEVMode();
-            });
-
-            expect(result.current.isEVModeActive).toBe(false);
-        });
-    });
+    // Mode Toggling tests removed as logic moved to useUI in lib/state.ts
 
     describe('Vehicle Profile Management', () => {
         it('should start with null vehicle profile', () => {
@@ -340,22 +312,6 @@ describe('EV Mode State Management', () => {
         });
     });
 
-    describe('State Isolation', () => {
-        it('should not affect other stores when toggling EV mode', async () => {
-            const { result: evResult } = renderHook(() => useEVModeStore());
-
-            // Import and check telemetry store to ensure isolation
-            const { useTelemetryStore } = await import('../lib/state');
-            const { result: telemetryResult } = renderHook(() => useTelemetryStore());
-
-            const initialTelemetryData = { ...telemetryResult.current.data };
-
-            act(() => {
-                evResult.current.toggleEVMode();
-            });
-
-            // Telemetry data should remain unchanged
-            expect(telemetryResult.current.data).toEqual(initialTelemetryData);
-        });
-    });
+    // State Isolation tests removed as toggling logic moved. 
+    // New interaction tests should be in integration tests or useUI tests.
 });

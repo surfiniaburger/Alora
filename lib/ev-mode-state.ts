@@ -64,16 +64,18 @@ export interface UserLocation {
  */
 interface EVModeState {
     // State
-    isEVModeActive: boolean;
+    // isEVModeActive removed in favor of useUI.appMode
     vehicleProfile: EVVehicleProfile | null;
     nearbyStations: EVChargingStation[];
     selectedStation: EVChargingStation | null;
     routeToStation: google.maps.LatLngAltitudeLiteral[] | null;
     userLocation: UserLocation | null;
     routePath: google.maps.LatLngAltitudeLiteral[] | null;
+    triggerLocationRequest: number;
 
     // Actions
-    toggleEVMode: () => void;
+    // toggle/setEVMode removed
+    requestLocation: () => void;
     setVehicleProfile: (profile: EVVehicleProfile) => void;
     setNearbyStations: (stations: EVChargingStation[]) => void;
     selectStation: (station: EVChargingStation | null) => void;
@@ -89,17 +91,20 @@ interface EVModeState {
  */
 export const useEVModeStore = create<EVModeState>((set) => ({
     // Initial State
-    isEVModeActive: false,
+    // isEVModeActive: false, // Removed
     vehicleProfile: null,
     nearbyStations: [],
     selectedStation: null,
     routeToStation: null,
     userLocation: null,
     routePath: null,
+    triggerLocationRequest: 0,
 
-    // Toggle EV Mode on/off
-    toggleEVMode: () => set((state) => ({
-        isEVModeActive: !state.isEVModeActive
+    // toggle/setEVMode removed
+
+    // Location Request Trigger
+    requestLocation: () => set((state) => ({
+        triggerLocationRequest: state.triggerLocationRequest + 1
     })),
 
     // Setters
@@ -122,5 +127,6 @@ export const useEVModeStore = create<EVModeState>((set) => ({
         routeToStation: null,
         userLocation: null,
         routePath: null,
+        triggerLocationRequest: 0,
     }),
 }));

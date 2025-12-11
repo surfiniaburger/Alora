@@ -29,7 +29,7 @@ interface GeolocationResult {
  * @param enabled - Whether to actively request location (typically tied to EV mode being active)
  * @returns Object containing location, error state, loading state, and manual request function
  */
-export function useGeolocation(enabled: boolean): GeolocationResult {
+export function useGeolocation(): GeolocationResult {
     const [location, setLocation] = useState<UserLocation | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -129,19 +129,24 @@ export function useGeolocation(enabled: boolean): GeolocationResult {
             },
             // Options
             {
-                enableHighAccuracy: false,
-                timeout: 5000,
-                maximumAge: 60000, // Cache for 1 minute
+                enableHighAccuracy: true, // Force high accuracy to avoid POSITION_UNAVAILABLE on some devices
+                timeout: 15000, // Increase timeout to 15s
+                maximumAge: 10000, // Reduce cache age to ensure fresh data
             }
         );
     }, [processPosition]);
 
-    // Auto-request location when enabled
+    const triggerLocationRequest = useEVModeStore(state => state.triggerLocationRequest);
+    const [lastTriggerCount, setLastTriggerCount] = useState(0);
+
+    // Auto-request location when triggered
     useEffect(() => {
-        if (enabled && !location && !error) {
+        if (triggerLocationRequest > lastTriggerCount) {
+            console.log('[Geolocation] Trigger received:', triggerLocationRequest);
             requestLocation();
+            setLastTriggerCount(triggerLocationRequest);
         }
-    }, [enabled, location, error, requestLocation]);
+    }, [triggerLocationRequest, lastTriggerCount, requestLocation]);
 
     return {
         location,

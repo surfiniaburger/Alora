@@ -14,10 +14,10 @@ import { useLiveAPIContext } from '../../contexts/LiveAPIContext';
 import {
   useSettings,
   useLogStore,
-  useTools,
   ConversationTurn,
   useUI,
 } from '@/lib/state';
+import { toolDeclarations } from '@/lib/tools/tool-registry';
 import { SourcesPopover } from '../sources-popover/sources-popover';
 import { GroundingWidget } from '../GroundingWidget';
 
@@ -65,10 +65,9 @@ export default function StreamingConsole() {
     clearHeldGroundedResponse,
   } = useLiveAPIContext();
   const { systemPrompt, voice } = useSettings();
-  const { tools } = useTools();
   const turns = useLogStore(state => state.turns);
   const { showSystemMessages } = useUI();
-  const { isEVModeActive } = useEVModeStore();
+  // const { isEVModeActive } = useEVModeStore(); // Removed unused
   const isAwaitingFunctionResponse = useLogStore(
     state => state.isAwaitingFunctionResponse,
   );
@@ -134,7 +133,8 @@ export default function StreamingConsole() {
 
   // Set the configuration for the Live API (Keep existing logic)
   useEffect(() => {
-    const enabledTools = tools
+    // FIX: Using unified toolDeclarations (which contains metadata) instead of toolRegistry (implementations only)
+    const enabledTools = toolDeclarations
       .filter(tool => tool.isEnabled)
       .map(tool => ({
         functionDeclarations: [
@@ -164,7 +164,7 @@ export default function StreamingConsole() {
     };
 
     setConfig(config);
-  }, [setConfig, systemPrompt, tools, voice]);
+  }, [setConfig, systemPrompt, voice]);
 
   // Handle Transcriptions
   const addTurn = useLogStore(state => state.addTurn);

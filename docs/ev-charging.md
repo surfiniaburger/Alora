@@ -8,23 +8,9 @@ The EV (Electric Vehicle) Charging feature enables Alora to find nearby charging
 
 ## Architecture
 
-### Feature Toggle
+## Architecture
 
-**Component:** `EVModeToggle.tsx`  
-**Position:** Top-left floating button
-
-**States:**
-- **Race Mode** (default): Shows telemetry, enables race strategy tools
-- **EV Mode**: Shows battery status, enables EV charging tools
-
-**State Management:**
-```tsx
-const { isEVMode, toggleEVMode } = useEVModeStore();
-```
-
----
-
-## State Management
+### State Management
 
 ### EV Mode Store
 
@@ -41,7 +27,7 @@ interface EVModeState {
   userLocation: GeolocationCoordinates | null;
   
   // Actions
-  toggleEVMode: () => void;
+  // toggleEVMode removed (Agent-driven state)
   setVehicleProfile: (profile: EVVehicleProfile) => void;
   setNearbyStations: (stations: ChargingStation[]) => void;
   setRoutePath: (path: google.maps.LatLng[] | null) => void;

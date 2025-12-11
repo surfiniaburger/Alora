@@ -25,7 +25,6 @@ import StreamingConsole from './components/streaming-console/StreamingConsole';
 import PopUp from './components/popup/PopUp';
 import Sidebar from './components/Sidebar';
 import TelemetryPanel from './components/telemetry/TelemetryPanel';
-import EVModeToggle from './components/EVModeToggle';
 import EVStationPanel from './components/ev/EVStationPanel';
 import DebugPanel from './components/DebugPanel';
 import { LiveAPIProvider } from './contexts/LiveAPIContext';
@@ -183,10 +182,22 @@ function AppComponent() {
 
   // Effect: Update EV station markers when stations are found
   // This connects the EV tool results with the 3D map visualization
-  const { isTelemetryPanelOpen } = useUI();
-  const { nearbyStations, isEVModeActive, routePath } = useEVModeStore();
+  const { isTelemetryPanelOpen, appMode } = useUI();
+  const { nearbyStations, routePath } = useEVModeStore();
+  const isEVModeActive = appMode === 'EV';
+
   // Request geolocation when in EV mode
-  const { location: gpsLocation, error: geoError } = useGeolocation(isEVModeActive);
+  // Request geolocation when in EV mode
+  const { location: gpsLocation, error: geoError, requestLocation } = useGeolocation();
+
+  // Effect: Automatically request location when entering EV mode
+  useEffect(() => {
+    if (isEVModeActive && !gpsLocation) {
+      console.log('[App] Entering EV Mode, requesting location...');
+      requestLocation();
+    }
+  }, [isEVModeActive, gpsLocation, requestLocation]);
+  // Effect: Update EV station markers when stations are found
   useEffect(() => {
     if (mapController.current) {
       if (!isEVModeActive) {
@@ -322,7 +333,6 @@ function AppComponent() {
       padding={padding}
     >
       <ErrorScreen />
-      <EVModeToggle />
       <DebugPanel
         isVisible={showDebugPanel}
         onToggle={() => setShowDebugPanel(!showDebugPanel)}

@@ -241,4 +241,23 @@ export const evAssistantTools: FunctionCall[] = [
         isEnabled: true,
         scheduling: FunctionResponseScheduling.INTERRUPT,
     },
+    {
+        name: 'requestCurrentLocation',
+        description: `Requests the user's current GPS location via the browser/device.
+    
+    **When to call:**
+    - Before using \`findEVChargingStations\` if you do not have the user's location.
+    - If the user asks for "nearby" amenities and you don't know where they are.
+    
+    **Behavior:**
+    - This will trigger a browser permission prompt for the user.
+    - After calling this, WAIT for the user to grant permission. Explain this to the user.
+    - Once granted, the location will automatically be updated in your context.`,
+        parameters: {
+            type: 'OBJECT',
+            properties: {}, // No params needed
+        },
+        isEnabled: true,
+        scheduling: FunctionResponseScheduling.INTERRUPT,
+    },
 ];

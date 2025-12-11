@@ -2,11 +2,6 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
-*/
-
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
  */
 /**
  * Copyright 2024 Google LLC
@@ -30,9 +25,13 @@ import { mapsGrounding, fetchPlaceDetailsFromChunks, updateMapStateWithMarkers }
 import { MapMarker, useLogStore, useMapStore, useTelemetryStore } from '@/lib/state';
 import { lookAtWithPadding } from '../look-at';
 
-import type { ToolImplementation, ToolContext } from './tool-types';
+import type { ToolImplementation, ToolContext, FunctionCall } from './tool-types';
 export type { ToolImplementation, ToolContext };
 import { evToolRegistry } from './ev-tool-registry';
+import { uiTools, uiToolDeclarations } from './ui-tools';
+import { itineraryPlannerTools } from './itinerary-planner';
+import { evAssistantTools } from './ev-assistant-tools';
+
 
 /**
  * Tool implementation for retrieving live race telemetry.
@@ -239,14 +238,9 @@ const frameLocations: ToolImplementation = async (args, context) => {
 };
 
 /**
- * Race Strategy Tool Registry
- * Contains tools specific to race telemetry and strategy.
+ * Common Tools
  */
-/**
- * Race Strategy Tool Registry
- * Contains tools specific to race telemetry and strategy.
- */
-export const raceToolRegistry: Record<string, ToolImplementation> = {
+export const commonTools: Record<string, ToolImplementation> = {
   getLiveTelemetry,
   mapsGrounding,
   frameEstablishingShot,
@@ -254,30 +248,33 @@ export const raceToolRegistry: Record<string, ToolImplementation> = {
 };
 
 /**
- * Dynamic Tool Registry
- * 
- * Returns the appropriate tool registry based on the provided template.
- * This allows seamless switching between Race Mode and EV Mode without conflicts.
- * 
- * @param template - The current active template ('race-strategy' or 'ev-assistant')
- * @returns The tool registry for the active template
+ * Unified Tool Registry
+ * Contains ALL tools available to the Unified Alora Persona.
+ */
+export const toolRegistry: Record<string, ToolImplementation> = {
+  ...commonTools,
+  ...evToolRegistry, // Import EV tools (find stations, vehicle profile, etc)
+  ...uiTools,       // Import UI tools (setAppMode)
+};
+
+/**
+ * Legacy export for backward compatibility or if dynamic loading is needed in future.
+ * For now, returns the unified registry.
  */
 export function getToolRegistry(template: string): Record<string, ToolImplementation> {
-  console.log('[Tool Registry] getToolRegistry called with template:', template);
-
-  if (template === 'ev-assistant') {
-    console.log('[Tool Registry] Loading EV tools...');
-    console.log('[Tool Registry] EV tools loaded:', Object.keys(evToolRegistry));
-    return evToolRegistry;
-  }
-
-  // Default to race tools
-  console.log('[Tool Registry] Using race tools');
-  return raceToolRegistry;
+  // We ignore the template now as Alora is unified.
+  // We log it just for debugging if something old calls it.
+  // console.log('[Tool Registry] getToolRegistry called (Unified Mode):', template); // Optional log
+  return toolRegistry;
 }
 
 /**
- * Legacy export for backward compatibility.
- * Use getToolRegistry() for dynamic tool selection.
+ * Unified Tool Declarations
+ * Contains the metadata (name, description, parameters) for all tools.
+ * Used by the UI to configure the Gemini Live API.
  */
-export const toolRegistry: Record<string, ToolImplementation> = raceToolRegistry;
+export const toolDeclarations: FunctionCall[] = [
+  ...itineraryPlannerTools,
+  ...evAssistantTools,
+  ...uiToolDeclarations,
+];

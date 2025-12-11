@@ -61,9 +61,10 @@ function ControlTray({ trayRef, onToggleDebug }: ControlTrayProps) {
   const [muted, setMuted] = useState(true);
   const [textPrompt, setTextPrompt] = useState('');
   const micButtonRef = useRef<HTMLButtonElement>(null);
-  const { toggleSidebar, toggleTelemetryPanel, isTelemetryPanelOpen } = useUI();
+  const { toggleSidebar, toggleTelemetryPanel, isTelemetryPanelOpen, appMode } = useUI();
   const { activateEasterEggMode } = useSettings();
-  const { selectedStation, isEVModeActive } = useEVModeStore();
+  const { selectedStation } = useEVModeStore();
+  const isEVModeActive = appMode === 'EV';
   const settingsClickTimestamps = useRef<number[]>([]);
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isTextEntryVisible, setIsTextEntryVisible] = useState(false);

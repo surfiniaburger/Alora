@@ -735,6 +735,28 @@ const setUserLocation: ToolImplementation = async (args, context) => {
 };
 
 /**
+ * TOOL 6: requestCurrentLocation
+ * 
+ * Triggers the browser's geolocation prompt via the store + hook combination.
+ * This allows the Agent to explicitly ask for permission.
+ */
+const requestCurrentLocation: ToolImplementation = async (args, context) => {
+    console.log('[EV Tool] requestCurrentLocation called');
+
+    // Trigger the hook in App.tsx via the store
+    useEVModeStore.getState().requestLocation();
+
+    // Log the action interactively
+    useLogStore.getState().addTurn({
+        role: 'system',
+        text: 'Requesting location access from your device...',
+        isFinal: true,
+    });
+
+    return 'Location request initiated. Please ask the user to allow location access in their browser. Wait for confirmation.';
+};
+
+/**
  * EV Tool Registry
  * 
  * Maps tool names to their implementation functions.
@@ -746,6 +768,7 @@ export const evToolRegistry: Record<string, ToolImplementation> = {
     showRouteToStation,
     calculateChargingTime,
     setUserLocation,
+    requestCurrentLocation,
     // Reuse the existing mapsGrounding tool for general queries
     mapsGrounding,
 };
