@@ -75,7 +75,7 @@ describe('Sidebar', () => {
 
         (useSettings as any).getState = vi.fn().mockReturnValue({
             systemPrompt: 'Default prompt',
-            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+            model: 'test-model',
         });
 
         (useLiveAPIContext as any).mockReturnValue({

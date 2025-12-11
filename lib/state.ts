@@ -122,7 +122,6 @@ export const useSettings = create(
         }
         return persistedState;
       },
-      },
       partialize: (state) => ({
         systemPrompt: state.systemPrompt,
         model: state.model,

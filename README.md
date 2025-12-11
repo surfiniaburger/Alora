@@ -586,6 +586,11 @@ We tailored Alora's "Track Mode" specifically for the **Toyota GR Cup** racing s
 - **Meta Horizon**: VR experience for sim racing
 - **Integration**: Voice-enabled dashboard for race engineers
 
+### Phase 4: Architecture Evolution (Current Focus)
+- **Unified Persona Architecture**: Transitioning from context-switching multiple personas to a single, coherent persona that adapts to the current mode (EV vs. Race).
+- **Object Classification with Meta SAM2**: Integrating Meta's Segment Anything Model 2 (SAM2) for advanced object detection and classification capabilities.
+    - *Note*: As an open-source model, this will require a hosting strategy (e.g., self-hosted, cloud inference API).
+
 ---
 
 ## 📚 Documentation
