@@ -11,14 +11,12 @@ import {
   AVAILABLE_VOICES_LIMITED,
   MODELS_WITH_LIMITED_VOICES,
   DEFAULT_VOICE,
+  DEFAULT_LIVE_API_MODEL,
 } from '@/lib/constants';
 import { useLiveAPIContext } from '@/contexts/LiveAPIContext';
 
 const AVAILABLE_MODELS = [
-  'gemini-2.5-flash-native-audio-preview-09-2025',
-  'gemini-2.5-flash-native-audio-latest',
-  'gemini-live-2.5-flash-preview',
-  'gemini-2.0-flash-live-001'
+  DEFAULT_LIVE_API_MODEL,
 ];
 
 export default function Sidebar() {

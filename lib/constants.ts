@@ -22,7 +22,7 @@
 /**
  * Default Live API model to use
  */
-export const DEFAULT_LIVE_API_MODEL = 'gemini-live-2.5-flash-preview';
+export const DEFAULT_LIVE_API_MODEL = 'gemini-2.5-flash-native-audio-preview-09-2025';
 
 export const DEFAULT_VOICE = 'Fenrir'; // Deeper, more serious voice for engineer
 
@@ -76,8 +76,7 @@ export const AVAILABLE_VOICES_LIMITED: VoiceOption[] = [
 ];
 
 export const MODELS_WITH_LIMITED_VOICES = [
-    'gemini-live-2.5-flash-preview',
-    'gemini-2.0-flash-live-001'
+    'gemini-2.5-flash-native-audio-preview-09-2025',
 ];
 
 export const RACE_ENGINEER_PROMPT = `

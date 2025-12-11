@@ -28,8 +28,9 @@ vi.mock('../../lib/state', () => ({
 vi.mock('../../lib/constants', () => ({
     AVAILABLE_VOICES_FULL: [{ name: 'Puck', description: 'Test Voice' }, { name: 'Charon', description: 'Test Voice 2' }],
     AVAILABLE_VOICES_LIMITED: [{ name: 'Puck', description: 'Test Voice' }, { name: 'Charon', description: 'Test Voice 2' }],
-    MODELS_WITH_LIMITED_VOICES: ['gemini-2.0-flash-live-001'],
+    MODELS_WITH_LIMITED_VOICES: ['test-model'],
     DEFAULT_VOICE: 'Puck',
+    DEFAULT_LIVE_API_MODEL: 'test-model',
 }));
 
 vi.mock('../../contexts/LiveAPIContext', () => ({
@@ -62,7 +63,7 @@ describe('Sidebar', () => {
 
         (useSettings as any).mockReturnValue({
             systemPrompt: 'Default prompt',
-            model: 'gemini-2.0-flash-live-001',
+            model: 'test-model',
             voice: 'Puck',
             setSystemPrompt: mockSetSystemPrompt,
             setModel: mockSetModel,
@@ -74,7 +75,7 @@ describe('Sidebar', () => {
 
         (useSettings as any).getState = vi.fn().mockReturnValue({
             systemPrompt: 'Default prompt',
-            model: 'gemini-2.0-flash-live-001',
+            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         });
 
         (useLiveAPIContext as any).mockReturnValue({
@@ -150,9 +151,9 @@ describe('Sidebar', () => {
         render(<Sidebar />);
 
         const select = screen.getByLabelText('Model');
-        fireEvent.change(select, { target: { value: 'gemini-live-2.5-flash-preview' } });
+        fireEvent.change(select, { target: { value: 'test-model' } });
 
-        expect(mockSetModel).toHaveBeenCalledWith('gemini-live-2.5-flash-preview');
+        expect(mockSetModel).toHaveBeenCalledWith('test-model');
     });
 
     it('updates voice', () => {

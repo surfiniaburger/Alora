@@ -5,6 +5,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useSettings, useUI, useTools, useMapStore } from './state';
+import { DEFAULT_LIVE_API_MODEL } from './constants';
 
 describe('State Stores', () => {
     describe('useSettings', () => {
@@ -64,7 +65,7 @@ describe('State Stores', () => {
             const state = useSettings.getState();
             expect(state.isEasterEggMode).toBe(true);
             expect(state.activePersona).toBeDefined();
-            expect(state.model).toBe('gemini-live-2.5-flash-preview');
+            expect(state.model).toBe(DEFAULT_LIVE_API_MODEL);
         });
 
         it('should not activate Easter egg mode twice', () => {
