@@ -116,11 +116,12 @@ export const useSettings = create(
       version: 1,
       migrate: (persistedState: any, version: number) => {
         if (version === 0) {
-          if (persistedState.model === 'gemini-live-2.5-flash-preview') {
+          if (persistedState?.model === 'gemini-live-2.5-flash-preview') {
             persistedState.model = DEFAULT_LIVE_API_MODEL;
           }
         }
         return persistedState;
+      },
       },
       partialize: (state) => ({
         systemPrompt: state.systemPrompt,
